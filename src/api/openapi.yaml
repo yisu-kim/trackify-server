@@ -1,0 +1,196 @@
+openapi: 3.0.3
+info:
+  title: Trackify API
+  description: |-
+    API for job tracking service with Notion integration
+  contact:
+    email: "yisu.kim.dev@outlook.com"
+  version: 0.1.0
+servers:
+  - url: http://localhost:8080
+tags:
+  - name: auth
+    description: Authentication endpoints
+paths:
+  /auth/signup:
+    post:
+      tags:
+        - auth
+      summary: Sign up a new user via OAuth
+      description: |-
+        Registers a new user by exchanging the OAuth authorization code for an access token.
+      operationId: signup
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+      responses:
+        "201":
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth provider not supported or missing authorization code
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Authorization code is invalid or expired
+        "409":
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User already exists
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Log in a user via OAuth provider
+      description: |-
+        Authenticates a user by exchanging the OAuth authorization code for an access token.
+      operationId: login
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+        required: true
+      responses:
+        "200":
+          description: User authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth provider not supported or missing authorization code
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Authorization error
+                    example: Authorization code is invalid or expired
+  /auth/me:
+    get:
+      tags:
+        - auth
+      summary: Retrieve current authenticated user profile
+      description: Retrieves profile information of the current authenticated user using their access token.
+      operationId: me
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: provider
+          schema:
+            $ref: "#/components/schemas/AuthProvider"
+          required: true
+      responses:
+        "200":
+          description: Retrieved the user's profile
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth provider not supported or missing access token
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Authorization error
+                    example: Access token is invalid or expired
+components:
+  schemas:
+    AuthProvider:
+      type: string
+      enum: [notion]
+      description: OAuth provider (e.g., Notion)
+    AuthRequest:
+      type: object
+      properties:
+        code:
+          type: string
+          description: OAuth authorization code obtained from the provider
+        provider:
+          $ref: "#/components/schemas/AuthProvider"
+      required:
+        - code
+        - provider
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Access token obtained from the provider
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+      required:
+        - token
+    User:
+      type: object
+      properties:
+        userId:
+          type: string
+          maxLength: 128
+        userName:
+          type: string
+          maxLength: 128
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-09-30T09:30:20.000Z"
+      required:
+        - userId
+        - createdAt
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
