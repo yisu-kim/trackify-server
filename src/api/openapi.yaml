@@ -10,118 +10,116 @@ servers:
   - url: http://localhost:8080
 tags:
   - name: auth
-    description: Authentication endpoints
+    description: Authentication endpoints for OAuth 2.0
 paths:
-  /auth/signup:
-    post:
-      tags:
-        - auth
-      summary: Sign up a new user via OAuth
-      description: |-
-        Registers a new user by exchanging the OAuth authorization code for an access token.
-      operationId: signup
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AuthRequest"
-      responses:
-        "201":
-          description: User created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: OAuth provider not supported or missing authorization code
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Authorization code is invalid or expired
-        "409":
-          description: Conflict
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: User already exists
-  /auth/login:
-    post:
-      tags:
-        - auth
-      summary: Log in a user via OAuth provider
-      description: |-
-        Authenticates a user by exchanging the OAuth authorization code for an access token.
-      operationId: login
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AuthRequest"
-        required: true
-      responses:
-        "200":
-          description: User authenticated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AuthResponse"
-        "400":
-          description: Bad request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: OAuth provider not supported or missing authorization code
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    description: Authorization error
-                    example: Authorization code is invalid or expired
-  /auth/me:
+  /auth/{provider}:
     get:
       tags:
         - auth
-      summary: Retrieve current authenticated user profile
-      description: Retrieves profile information of the current authenticated user using their access token.
-      operationId: me
+      summary: Get OAuth authorization URL
+      description: Generates and returns the OAuth authorization URL for the specified provider. The client uses this URL to redirect the user for OAuth authentication.
+      operationId: getAuthUrl
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AuthProvider"
+      responses:
+        "200":
+          description: OAuth authorization URL generated.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authorizationUrl:
+                    type: string
+                    description: The URL to redirect the user for OAuth authorization.
+                    example: https://api.notion.com/v1/oauth/authorize?owner=user&client_id=463558a3-725e-4f37-b6d3-0889894f68de&redirect_uri=https%3A%2F%2Fexample.com%2Fauth%2Fnotion%2Fcallback&response_type=code&state=xyzABC123
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth provider not supported or missing
+
+  /auth/{provider}/callback:
+    get:
+      tags:
+        - auth
+      summary: Handle OAuth callback
+      description: After user authentication, the OAuth provider redirects back to the server with a code. This endpoint handles the callback, exchanges the code for access tokens, and completes the authentication process.
+      operationId: exchangeCodeForToken
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            $ref: "#/components/schemas/AuthProvider"
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The authorization code provided by the OAuth provider after successful login.
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The state parameter for CSRF protection, sent in the initial authorization request.
+      responses:
+        "200":
+          description: Authentication successful, access token obtained.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthResponse"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: OAuth provider not supported or missing authorization code and/or state parameter
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Authentication error
+                    example: Authorization code or state is invalid or expired
+
+  /auth/{provider}/me:
+    get:
+      tags:
+        - auth
+      summary: Check authentication status
+      description: Verifies the user's authentication status by checking the provided access token and returns the user's information if authenticated.
+      operationId: checkAuthStatus
       security:
         - bearerAuth: []
       parameters:
-        - in: query
-          name: provider
+        - name: provider
+          in: path
+          required: true
           schema:
             $ref: "#/components/schemas/AuthProvider"
-          required: true
       responses:
         "200":
-          description: Retrieved the user's profile
+          description: User is authenticated and user data is returned.
           content:
             application/json:
               schema:
@@ -145,31 +143,21 @@ paths:
                 properties:
                   message:
                     type: string
-                    description: Authorization error
+                    description: Authentication error
                     example: Access token is invalid or expired
+
 components:
   schemas:
     AuthProvider:
       type: string
       enum: [notion]
-      description: OAuth provider (e.g., Notion)
-    AuthRequest:
-      type: object
-      properties:
-        code:
-          type: string
-          description: OAuth authorization code obtained from the provider
-        provider:
-          $ref: "#/components/schemas/AuthProvider"
-      required:
-        - code
-        - provider
+      description: The OAuth provider to be used for authentication. (e.g., Notion, Google)
     AuthResponse:
       type: object
       properties:
         token:
           type: string
-          description: Access token obtained from the provider
+          description: The access token issued by the OAuth provider.
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
       required:
         - token
