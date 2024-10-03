@@ -3,7 +3,7 @@ import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
 import { config } from "./config";
-import { sequelize } from "./db/database";
+import { initDatabase } from "./db/database";
 
 const app = express();
 
@@ -30,21 +30,16 @@ interface HttpError extends Error {
 
 app.use((error: HttpError, req: express.Request, res: express.Response) => {
   console.error(error);
+  // TODO: handle error
   res.status(error.status || 500).json({
-    message: error.message,
+    message: "Internal Server Error",
   });
 });
 
-sequelize
-  .sync()
-  .then(() => {
-    console.log("Connection has been established successfully.");
-    app.listen(config.port, () => {
-      console.log(
-        `listening on port ... ${config.port} ${new Date().toISOString()}`,
-      );
-    });
-  })
-  .catch((error) => {
-    console.error("Unable to connect to the database:", error);
+initDatabase().then(() => {
+  app.listen(config.port, () => {
+    console.log(
+      `listening on port ... ${config.port} ${new Date().toISOString()}`,
+    );
   });
+});

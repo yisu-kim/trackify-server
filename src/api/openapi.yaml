@@ -84,7 +84,7 @@ paths:
                   token:
                     type: string
                     description: The access token issued by the OAuth provider.
-                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                    example: "eyJhbGciOiJIUzI1NiI....<jwt_token>"
                 required:
                   - token
         "400":

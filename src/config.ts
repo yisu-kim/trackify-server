@@ -1,23 +1,36 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-function required(key: string, defaultValue?: string) {
+function required<T>(key: string, defaultValue?: T): T {
   const value = process.env[key] || defaultValue;
   if (value == null) {
-    throw new Error(`Key ${key} is undefined`);
+    throw new Error(`Environment variable ${key} is required but not set`);
   }
-  return value;
+  return value as T;
 }
 
-export const config = {
-  port: required("PORT", "8080"),
+type Config = {
+  port: number;
   cors: {
-    allowedOrigin: required("CORS_ALLOW_ORIGIN"),
+    allowedOrigin: string[];
+  };
+  db: {
+    database: string;
+    user: string;
+    password: string;
+    host: string;
+  };
+};
+
+export const config: Config = {
+  port: required<number>("PORT", 8080),
+  cors: {
+    allowedOrigin: required<string>("CORS_ALLOW_ORIGIN").split(","),
   },
   db: {
-    database: required("DB_DATABASE"),
-    user: required("DB_USER"),
-    password: required("DB_PASSWORD"),
-    host: required("DB_HOST"),
+    database: required<string>("DB_DATABASE"),
+    user: required<string>("DB_USER"),
+    password: required<string>("DB_PASSWORD"),
+    host: required<string>("DB_HOST"),
   },
 };
