@@ -79,7 +79,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AuthResponse"
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: The access token issued by the OAuth provider.
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+                required:
+                  - token
         "400":
           description: Bad request
           content:
@@ -152,15 +159,6 @@ components:
       type: string
       enum: [notion]
       description: The OAuth provider to be used for authentication. (e.g., Notion, Google)
-    AuthResponse:
-      type: object
-      properties:
-        token:
-          type: string
-          description: The access token issued by the OAuth provider.
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
-      required:
-        - token
     User:
       type: object
       properties:

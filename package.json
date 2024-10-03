@@ -1,0 +1,39 @@
+{
+  "name": "trackify-server",
+  "version": "0.1.0",
+  "description": "Job application tracking service w/ Notion database",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "tsc -w & sleep 2 && nodemon dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yisu-kim/trackify-server.git"
+  },
+  "author": "Yisu Kim",
+  "bugs": {
+    "url": "https://github.com/yisu-kim/trackify-server/issues"
+  },
+  "homepage": "https://github.com/yisu-kim/trackify-server#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "helmet": "^8.0.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.13.0",
+    "sequelize": "^6.37.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/morgan": "^1.9.9",
+    "eslint": "^9.11.1",
+    "globals": "^15.10.0",
+    "nodemon": "^3.1.7",
+    "prettier": "3.3.3",
+    "typescript-eslint": "^8.8.0"
+  }
+}
