@@ -1,24 +1,56 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import cors from "cors";
 import morgan from "morgan";
-import { config } from "./config";
-import { initDatabase } from "./db/database";
+import expressSession from "express-session";
+import passport from "passport";
+import { config } from "./config.js";
+import { initDatabase } from "./db/database.js";
+import authRouter from "./router/auth.js";
+
+const {
+  client,
+  port,
+  auth: { session },
+} = config;
 
 const app = express();
 
 const corsOptions = {
-  origin: config.cors.allowedOrigin,
+  origin: client.origin,
+  credentials: true,
 };
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(morgan("combined"));
 
-app.get("/", (req: express.Request, res: express.Response) => {
-  res.send("Hello World!");
-});
+app.use(
+  expressSession({
+    name: session.name,
+    secret: session.secret,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      // Only send the cookie over HTTPS.
+      // Set to true in production for security, false in development for easier testing.
+      secure: process.env.NODE_ENV === "production" ? true : false,
+      // Configure cookie sending policy for CORS requests.
+      // In production, set to 'none' to allow sending cookies in cross-site requests.
+      // In development, set to false to send cookies in all contexts.
+      sameSite: process.env.NODE_ENV === "production" ? "none" : false,
+      maxAge: session.maxAge,
+    },
+  }),
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use("/auth", authRouter);
 
 app.use((req: express.Request, res: express.Response) => {
   res.sendStatus(404);
@@ -37,9 +69,7 @@ app.use((error: HttpError, req: express.Request, res: express.Response) => {
 });
 
 initDatabase().then(() => {
-  app.listen(config.port, () => {
-    console.log(
-      `listening on port ... ${config.port} ${new Date().toISOString()}`,
-    );
+  app.listen(port, () => {
+    console.log(`listening on port ... ${port} ${new Date().toISOString()}`);
   });
 });

@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Job application tracking service w/ Notion database",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "tsc -w & sleep 2 && nodemon dist"
@@ -17,19 +18,26 @@
   },
   "homepage": "https://github.com/yisu-kim/trackify-server#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
+    "express-session": "^1.18.1",
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
+    "passport": "^0.7.0",
+    "passport-oauth2": "^1.8.0",
     "pg": "^8.13.0",
     "sequelize": "^6.37.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.0",
     "@types/morgan": "^1.9.9",
+    "@types/passport-oauth2": "^1.4.17",
     "eslint": "^9.11.1",
     "globals": "^15.10.0",
     "nodemon": "^3.1.7",

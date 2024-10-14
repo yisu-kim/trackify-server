@@ -1,7 +1,9 @@
 import { Sequelize } from "sequelize";
-import { config } from "../config";
+import { config } from "../config.js";
 
-const { host, user, database, password } = config.db;
+const {
+  db: { host, user, database, password },
+} = config;
 
 const createSequelizeInstance = () => {
   const sequelize = new Sequelize(database, user, password, {
