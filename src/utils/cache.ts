@@ -5,7 +5,7 @@
  */
 
 const KEY_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
-const CACHE_CLEANUP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const CACHE_CLEANUP_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
 
 interface CacheEntry<T> {
   value: T;
