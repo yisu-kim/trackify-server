@@ -1,32 +1,20 @@
-import crypto from "node:crypto";
-import { NextFunction, Request, Response } from "express";
-import { config } from "../config.js";
+import { Request, Response } from "express";
+import { generateCsrfToken } from "../utils/crypto.js";
 
-const {
-  auth: { csrf },
-} = config;
-
-export function getCSRFToken(req: Request, res: Response, next: NextFunction) {
-  const csrfToken = generateCSRFToken();
+export function getCsrfToken(req: Request, res: Response) {
+  const csrfToken = generateCsrfToken();
   res.status(200).json({ csrfToken });
+  return;
 }
 
-function generateCSRFToken(): string {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const csrfToken = crypto
-    .createHash("sha256")
-    .update(csrf.secret + salt)
-    .digest("hex");
-
-  return csrfToken;
-}
-
-export function getUser(req: Request, res: Response, next: NextFunction) {
+export function getUser(req: Request, res: Response) {
   // TODO: User.findById
   const user = {};
   if (!user) {
-    return res.status(404).json({ message: "User not found" });
+    res.status(404).json({ message: "User not found" });
+    return;
   }
 
-  return res.status(200).json(req.user);
+  res.status(200).json(req.user);
+  return;
 }

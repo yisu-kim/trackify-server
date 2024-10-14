@@ -23,6 +23,7 @@ type Config = {
       maxAge: number;
     };
     csrf: {
+      name: string;
       secret: string;
     };
     session: {
@@ -59,6 +60,7 @@ export const config: Config = {
       maxAge: 60 * 60 * 1000,
     },
     csrf: {
+      name: required<string>("CSRF_TOKEN_COOKIE"),
       secret: required("CSRF_SECRET"),
     },
     session: {

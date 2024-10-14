@@ -6,8 +6,9 @@ import morgan from "morgan";
 import expressSession from "express-session";
 import passport from "passport";
 import { config } from "./config.js";
-import { initDatabase } from "./db/database.js";
+import { checkCsrf } from "./middleware/auth.js";
 import authRouter from "./router/auth.js";
+import { initDatabase } from "./db/database.js";
 
 const {
   client,
@@ -50,6 +51,7 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use(checkCsrf);
 app.use("/auth", authRouter);
 
 app.use((req: express.Request, res: express.Response) => {

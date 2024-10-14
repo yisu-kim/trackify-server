@@ -1,6 +1,16 @@
 import { Buffer } from "node:buffer";
-import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  randomBytes,
+} from "node:crypto";
 import { getFromCache, setToCache } from "./cache.js";
+import { config } from "../config.js";
+
+const {
+  auth: { csrf },
+} = config;
 
 const ALGORITHM = "aes-256-gcm";
 
@@ -38,4 +48,23 @@ export function decryptData(userId: string, encryptedData: string): string {
   decrypted += decipher.final("utf8");
 
   return decrypted;
+}
+
+export function generateCsrfToken(): string {
+  const salt = randomBytes(16).toString("hex");
+  const csrfToken = createHash("sha256")
+    .update(csrf.secret + salt)
+    .digest("hex");
+
+  return `${salt}$${csrfToken}`;
+}
+
+export function validateCsrfToken(csrfHeader: string) {
+  const [salt, csrfTokenFromHeader] = csrfHeader.split("$");
+
+  const csrfToken = createHash("sha256")
+    .update(csrf.secret + salt)
+    .digest("hex");
+
+  return csrfTokenFromHeader === csrfToken;
 }
