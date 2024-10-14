@@ -62,6 +62,10 @@ export function generateCsrfToken(): string {
 export function validateCsrfToken(csrfHeader: string) {
   const [salt, csrfTokenFromHeader] = csrfHeader.split("$");
 
+  if (!salt || !csrfTokenFromHeader) {
+    return false;
+  }
+
   const csrfToken = createHash("sha256")
     .update(csrf.secret + salt)
     .digest("hex");
