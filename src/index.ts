@@ -39,7 +39,7 @@ app.use(
       httpOnly: true,
       // Only send the cookie over HTTPS.
       // Set to true in production for security, false in development for easier testing.
-      secure: process.env.NODE_ENV === "production" ? true : false,
+      secure: process.env.NODE_ENV === "production",
       // Configure cookie sending policy for CORS requests.
       // In production, set to 'none' to allow sending cookies in cross-site requests.
       // In development, set to false to send cookies in all contexts.
