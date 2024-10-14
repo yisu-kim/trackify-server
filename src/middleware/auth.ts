@@ -14,7 +14,8 @@ export function isAuthenticated(
   const authToken = req.cookies[token.name];
 
   if (!authToken) {
-    res.status(401).json({ message: "No authentication token found" });
+    console.warn("No authentication token found");
+    res.status(401).json({ message: "Authentication failed" });
     return;
   }
 
@@ -22,17 +23,16 @@ export function isAuthenticated(
     const { id, encrypted } = JSON.parse(authToken);
     const decrypted = decryptData(id, encrypted);
     if (!decrypted) {
-      res.status(401).json({ message: "Failed to decrypt token." });
+      console.warn("Failed to decrypt token.");
+      res.status(401).json({ message: "Authentication failed" });
       return;
     }
 
     req.user = { id, token: decrypted };
     next();
   } catch (err) {
-    console.error(`Authentication error: ${err}`);
-    res
-      .status(401)
-      .json({ message: "Invalid token or decryption process failed." });
+    console.warn(`Authentication error: ${err}`);
+    res.status(500).json({ message: "Something went wrong" });
     return;
   }
 }
@@ -72,7 +72,7 @@ export const checkCsrf = (
     }
     next();
   } catch (err) {
-    console.log(err);
+    console.warn(`CSRF check error: ${err}`);
     res.status(500).json({ message: "Something went wrong" });
     return;
   }
