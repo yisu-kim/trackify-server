@@ -20,6 +20,7 @@ type Config = {
   auth: {
     token: {
       name: string;
+      secret: string;
       maxAge: number;
     };
     csrf: {
@@ -57,6 +58,7 @@ export const config: Config = {
   auth: {
     token: {
       name: required<string>("AUTH_TOKEN_COOKIE"),
+      secret: required<string>("AUTH_TOKEN_SECRET"),
       maxAge: 60 * 60 * 1000,
     },
     csrf: {

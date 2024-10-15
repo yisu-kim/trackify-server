@@ -61,10 +61,10 @@ export function handleCallback(
       }
 
       req.logout({ keepSessionInfo: false }, () => {
-        req.session.destroy(() => {
+        req.session.destroy(async () => {
           res.clearCookie(session.name);
 
-          const encrypted = encryptData(user.id, user.accessToken);
+          const encrypted = await encryptData(user.id, user.accessToken);
           res.cookie(token.name, JSON.stringify({ id: user.id, encrypted }), {
             httpOnly: true,
             secure: true,

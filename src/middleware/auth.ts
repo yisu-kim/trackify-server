@@ -6,7 +6,7 @@ const {
   auth: { csrf, token },
 } = config;
 
-export function isAuthenticated(
+export async function isAuthenticated(
   req: Request,
   res: Response,
   next: NextFunction,
@@ -21,7 +21,7 @@ export function isAuthenticated(
 
   try {
     const { id, encrypted } = JSON.parse(authToken);
-    const decrypted = decryptData(id, encrypted);
+    const decrypted = await decryptData(id, encrypted);
     if (!decrypted) {
       console.warn("Failed to decrypt token.");
       res.status(401).json({ message: "Authentication failed" });
@@ -30,8 +30,8 @@ export function isAuthenticated(
 
     req.user = { id, token: decrypted };
     next();
-  } catch (err) {
-    console.warn(`Authentication error: ${err}`);
+  } catch (error) {
+    console.warn(`Authentication error: ${error}`);
     res.status(500).json({ message: "Something went wrong" });
     return;
   }
@@ -71,8 +71,8 @@ export const checkCsrf = (
       return;
     }
     next();
-  } catch (err) {
-    console.warn(`CSRF check error: ${err}`);
+  } catch (error) {
+    console.warn(`CSRF check error: ${error}`);
     res.status(500).json({ message: "Something went wrong" });
     return;
   }
