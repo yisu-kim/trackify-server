@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import passport from "passport";
 import { config } from "../config.js";
 import { encryptData } from "../utils/crypto.js";
-import { notionStrategy } from "./notionStrategy.js";
+import { notionStrategy, NotionUser } from "./notionStrategy.js";
 
 const {
   client,
@@ -19,7 +19,7 @@ export function initiate(req: Request, res: Response, next: NextFunction) {
     { session: false },
     function (
       err: unknown | null,
-      user: { accessToken: string } | undefined,
+      user: NotionUser | undefined,
       info: { message: string } | undefined,
     ) {
       if (err) {
@@ -45,11 +45,11 @@ export function handleCallback(
   passport.authenticate(
     provider,
     { session: false },
-    (
+    function (
       err: unknown | null,
-      user: { id: string; accessToken: string } | undefined,
+      user: NotionUser | undefined,
       info: { message: string } | undefined,
-    ) => {
+    ) {
       if (err) {
         console.error(`Authentication error: ${err}`);
         return next(err);

@@ -34,6 +34,11 @@ interface NotionOAuthParams {
   workspace_id: string;
 }
 
+export interface NotionUser {
+  id: string;
+  accessToken: string;
+}
+
 function notionVerifyFunction(
   accessToken: string,
   refreshToken: string,
@@ -49,7 +54,8 @@ function notionVerifyFunction(
       workspace_id,
     } = params;
     // TODO: User.findOrCreate
-    return cb(null, { id, accessToken });
+    const user: NotionUser = { id, accessToken };
+    return cb(null, user);
   } catch (error) {
     return cb(error);
   }
