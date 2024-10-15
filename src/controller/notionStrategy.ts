@@ -41,15 +41,18 @@ function notionVerifyFunction(
   profile: unknown,
   cb: VerifyCallback,
 ) {
-  const {
-    owner: {
-      user: { id, name },
-    },
-    workspace_id,
-  } = params;
-  // TODO: User.findOrCreate
-
-  return cb(null, { id, accessToken });
+  try {
+    const {
+      owner: {
+        user: { id, name },
+      },
+      workspace_id,
+    } = params;
+    // TODO: User.findOrCreate
+    return cb(null, { id, accessToken });
+  } catch (error) {
+    return cb(error);
+  }
 }
 
 export const notionStrategy = new OAuth2Strategy(
