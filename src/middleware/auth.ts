@@ -54,7 +54,7 @@ export const checkCsrf = (
   const csrfHeader = req.get(csrf.name);
 
   if (!csrfHeader) {
-    console.warn(`Missing required ${csrf.name} header.`, req.headers.origin);
+    console.warn(`Missing required ${csrf.name} header.`);
     res.status(403).json({ message: "Failed CSRF check" });
     return;
   }
@@ -62,11 +62,7 @@ export const checkCsrf = (
   try {
     const isValid = validateCsrfToken(csrfHeader);
     if (!isValid) {
-      console.warn(
-        `Value provided in ${csrf.name} header does not validate.`,
-        req.headers.origin,
-        csrfHeader,
-      );
+      console.warn(`Value provided in ${csrf.name} header does not validate.`);
       res.status(403).json({ message: "Failed CSRF check" });
       return;
     }
