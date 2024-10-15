@@ -10,7 +10,7 @@ function required<T>(key: string, defaultValue?: T): T {
 }
 
 type Config = {
-  port: string;
+  port: number;
   db: {
     database: string;
     user: string;
@@ -48,7 +48,7 @@ type Config = {
 };
 
 export const config: Config = {
-  port: required<string>("PORT", "8080"),
+  port: required<number>("PORT", 8080),
   db: {
     database: required<string>("DB_DATABASE"),
     user: required<string>("DB_USER"),
