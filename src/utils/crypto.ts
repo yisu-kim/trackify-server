@@ -5,6 +5,7 @@ import {
   createHash,
   randomBytes,
   scrypt,
+  timingSafeEqual,
 } from "node:crypto";
 import { promisify } from "node:util";
 
@@ -70,15 +71,16 @@ export function generateCsrfToken(): string {
 }
 
 export function validateCsrfToken(csrfHeader: string) {
-  const [salt, csrfTokenFromHeader] = csrfHeader.split("$");
+  const [salt, csrfToken] = csrfHeader.split("$");
 
-  if (!salt || !csrfTokenFromHeader) {
+  if (!salt || !csrfToken) {
     return false;
   }
 
-  const csrfToken = createHash("sha256")
+  const expected = createHash("sha256")
     .update(csrf.secret + salt)
-    .digest("hex");
+    .digest();
+  const provided = Buffer.from(csrfToken);
 
-  return csrfTokenFromHeader === csrfToken;
+  return timingSafeEqual(expected, provided);
 }
