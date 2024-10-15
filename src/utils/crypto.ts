@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import {
   createCipheriv,
   createDecipheriv,
-  createHash,
+  createHmac,
   randomBytes,
   scrypt,
   timingSafeEqual,
@@ -15,7 +15,8 @@ const {
   auth: { token, csrf },
 } = config;
 
-const ALGORITHM = "aes-256-gcm";
+const CIPHER_ALGORITHM = "aes-256-gcm";
+const CSRF_ALGORITHM = "sha256";
 
 const scryptAsync = promisify(scrypt);
 
@@ -31,7 +32,7 @@ export async function encryptData(
   const salt = randomBytes(16).toString("hex");
   const key = await deriveKeyForUser(userId, salt);
   const iv = randomBytes(16);
-  const cipher = createCipheriv(ALGORITHM, key, iv);
+  const cipher = createCipheriv(CIPHER_ALGORITHM, key, iv);
 
   let encrypted = cipher.update(plainData, "utf8", "hex");
   encrypted += cipher.final("hex");
@@ -52,7 +53,7 @@ export async function decryptData(
   const salt = encryptedData.slice(-32);
   const key = await deriveKeyForUser(userId, salt);
 
-  const decipher = createDecipheriv(ALGORITHM, key, iv);
+  const decipher = createDecipheriv(CIPHER_ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
 
   let decrypted = decipher.update(encrypted, "hex", "utf8");
@@ -63,8 +64,8 @@ export async function decryptData(
 
 export function generateCsrfToken(): string {
   const salt = randomBytes(16).toString("hex");
-  const csrfToken = createHash("sha256")
-    .update(csrf.secret + salt)
+  const csrfToken = createHmac(CSRF_ALGORITHM, csrf.secret)
+    .update(salt)
     .digest("hex");
 
   return `${salt}$${csrfToken}`;
@@ -77,10 +78,10 @@ export function validateCsrfToken(csrfHeader: string) {
     return false;
   }
 
-  const expected = createHash("sha256")
-    .update(csrf.secret + salt)
+  const expected = createHmac(CSRF_ALGORITHM, csrf.secret)
+    .update(salt)
     .digest();
-  const provided = Buffer.from(csrfToken);
+  const provided = Buffer.from(csrfToken, "hex");
 
   return timingSafeEqual(expected, provided);
 }
