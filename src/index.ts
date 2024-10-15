@@ -51,8 +51,8 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use(checkCsrf);
 app.use("/auth", authRouter);
+app.use(checkCsrf);
 
 app.use((req: express.Request, res: express.Response) => {
   res.sendStatus(404);
