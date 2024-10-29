@@ -96,10 +96,13 @@ export function validateCsrfToken(csrfHeader: string) {
   return timingSafeEqual(expected, provided);
 }
 
+const JWT_ALGORITHM = "HS256";
+
 export function generateAccessToken<T extends Record<string, unknown>>(
   payload: T,
 ) {
   return jwt.sign(payload, accessTokenConfig.secret, {
+    algorithm: JWT_ALGORITHM,
     expiresIn: accessTokenConfig.expiresInSeconds,
   });
 }
@@ -109,7 +112,7 @@ export function validateAccessToken(token: string): Promise<JwtPayload> {
     jwt.verify(
       token,
       accessTokenConfig.secret,
-      { complete: false },
+      { algorithms: [JWT_ALGORITHM], complete: false },
       (
         error: VerifyErrors | null,
         decoded: JwtPayload | string | undefined,
