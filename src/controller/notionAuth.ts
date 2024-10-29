@@ -93,11 +93,16 @@ export function handleCallback(
           }
 
           const { exp: expInSeconds } = decoded;
+          if (typeof expInSeconds !== "number") {
+            console.warn("Token expiration 'exp' claim is missing");
+            return res.status(401).json({ message: "Authentication failed" });
+          }
+
           res.cookie(accessTokenConfig.name, accessToken, {
             httpOnly: true,
             secure: true,
             sameSite: "none",
-            expires: new Date(expInSeconds! * 1000),
+            expires: new Date(expInSeconds * 1000),
           });
 
           return res.redirect(client.origin);
