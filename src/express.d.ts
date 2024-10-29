@@ -4,7 +4,6 @@ export declare global {
       currentUser?: {
         id: string;
         iv: string;
-        accessToken: string;
       };
     }
   }

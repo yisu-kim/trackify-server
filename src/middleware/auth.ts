@@ -37,7 +37,7 @@ export async function isAuthenticated(
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    req.currentUser = { id, iv, accessToken };
+    req.currentUser = { id, iv };
     next();
   } catch (error) {
     console.warn(`Authentication error: ${error}`);

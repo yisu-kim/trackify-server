@@ -18,7 +18,7 @@ export async function getUser(req: Request, res: Response) {
     return res.status(401).json({ message: "User not found." });
   }
 
-  const { id, accessToken } = req.currentUser;
+  const { id } = req.currentUser;
 
-  return res.status(200).json({ id, accessToken });
+  return res.status(200).json({ id });
 }
