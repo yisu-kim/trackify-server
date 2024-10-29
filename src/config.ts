@@ -16,12 +16,13 @@ type Config = {
     user: string;
     password: string;
     host: string;
+    schema: string;
   };
   auth: {
-    token: {
+    accessToken: {
       name: string;
       secret: string;
-      maxAge: number;
+      expiresInSeconds: number;
     };
     csrf: {
       name: string;
@@ -31,6 +32,13 @@ type Config = {
       name: string;
       secret: string;
       maxAge: number;
+    };
+    cipher: {
+      secret: string;
+      saltLength: number;
+      keyLength: number;
+      ivLength: number;
+      authTagLength: number;
     };
     provider: {
       notion: {
@@ -54,12 +62,13 @@ export const config: Config = {
     user: required<string>("DB_USER"),
     password: required<string>("DB_PASSWORD"),
     host: required<string>("DB_HOST"),
+    schema: required<string>("DB_SCHEMA"),
   },
   auth: {
-    token: {
-      name: required<string>("AUTH_TOKEN_COOKIE"),
-      secret: required<string>("AUTH_TOKEN_SECRET"),
-      maxAge: 60 * 60 * 1000,
+    accessToken: {
+      name: required<string>("ACCESS_TOKEN_COOKIE"),
+      secret: required<string>("ACCESS_TOKEN_SECRET"),
+      expiresInSeconds: 60 * 60,
     },
     csrf: {
       name: required<string>("CSRF_TOKEN_COOKIE"),
@@ -69,6 +78,13 @@ export const config: Config = {
       name: required<string>("AUTH_SESSION_COOKIE"),
       secret: required<string>("AUTH_SESSION_SECRET"),
       maxAge: 60 * 1000,
+    },
+    cipher: {
+      secret: required<string>("CIPHER_KEY_SECRET"),
+      saltLength: 16,
+      keyLength: 32,
+      ivLength: 16,
+      authTagLength: 16,
     },
     provider: {
       notion: {

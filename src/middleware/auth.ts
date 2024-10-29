@@ -1,9 +1,12 @@
 import { NextFunction, Request, Response } from "express";
+
 import { config } from "../config.js";
-import { decryptData, validateCsrfToken } from "../utils/crypto.js";
+import { validateAccessToken, validateCsrfToken } from "../utils/auth.js";
+import { findUserByAccountId } from "../repository/user.js";
+import { findAccountById } from "../repository/account.js";
 
 const {
-  auth: { csrf, token },
+  auth: { accessToken: accessTokenConfig, csrf: csrfConfig },
 } = config;
 
 export async function isAuthenticated(
@@ -11,37 +14,38 @@ export async function isAuthenticated(
   res: Response,
   next: NextFunction,
 ) {
-  const authToken = req.cookies[token.name];
+  const accessToken = req.cookies[accessTokenConfig.name];
 
-  if (!authToken) {
-    console.warn("No authentication token found");
-    res.status(401).json({ message: "Authentication failed" });
-    return;
+  if (!accessToken) {
+    console.warn("No authentication token found.");
+    return res.status(401).json({ message: "Authentication failed" });
   }
 
   try {
-    const { id, encrypted } = JSON.parse(authToken);
-    const decrypted = await decryptData(id, encrypted);
-    if (!decrypted) {
-      console.warn("Failed to decrypt token.");
-      res.status(401).json({ message: "Authentication failed" });
-      return;
+    const decoded = await validateAccessToken(accessToken);
+    const { id, iv } = decoded;
+
+    const user = await findUserByAccountId(id);
+    if (!user) {
+      console.warn("User not found.");
+      return res.status(401).json({ message: "Authentication failed" });
     }
 
-    req.user = { id, token: decrypted };
+    const account = await findAccountById(id);
+    if (!account) {
+      console.warn("Account not found.");
+      return res.status(401).json({ message: "Authentication failed" });
+    }
+
+    req.currentUser = { id, iv, accessToken };
     next();
   } catch (error) {
     console.warn(`Authentication error: ${error}`);
-    res.status(500).json({ message: "Something went wrong" });
-    return;
+    return res.status(401).json({ message: "Authentication failed" });
   }
 }
 
-export const checkCsrf = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void => {
+export const checkCsrf = (req: Request, res: Response, next: NextFunction) => {
   if (
     req.method === "GET" ||
     req.method === "OPTIONS" ||
@@ -51,25 +55,24 @@ export const checkCsrf = (
     return;
   }
 
-  const csrfHeader = req.get(csrf.name);
+  const csrfHeader = req.get(csrfConfig.name);
 
   if (!csrfHeader) {
-    console.warn(`Missing required ${csrf.name} header.`);
-    res.status(403).json({ message: "Failed CSRF check" });
-    return;
+    console.warn(`Missing required ${csrfConfig.name} header.`);
+    return res.status(403).json({ message: "Failed CSRF check" });
   }
 
   try {
     const isValid = validateCsrfToken(csrfHeader);
     if (!isValid) {
-      console.warn(`Value provided in ${csrf.name} header does not validate.`);
-      res.status(403).json({ message: "Failed CSRF check" });
-      return;
+      console.warn(
+        `Value provided in ${csrfConfig.name} header does not validate.`,
+      );
+      return res.status(403).json({ message: "Failed CSRF check" });
     }
     next();
   } catch (error) {
     console.warn(`CSRF check error: ${error}`);
-    res.status(500).json({ message: "Something went wrong" });
-    return;
+    return res.status(500).json({ message: "Something went wrong" });
   }
 };

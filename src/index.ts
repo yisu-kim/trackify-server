@@ -9,11 +9,12 @@ import { config } from "./config.js";
 import { checkCsrf } from "./middleware/auth.js";
 import authRouter from "./router/auth.js";
 import { initDatabase } from "./db/database.js";
+import { setAssociations } from "./repository/setup.js";
 
 const {
   client,
   port,
-  auth: { session },
+  auth: { session: sessionConfig },
 } = config;
 
 const app = express();
@@ -31,8 +32,8 @@ app.use(morgan("combined"));
 
 app.use(
   expressSession({
-    name: session.name,
-    secret: session.secret,
+    name: sessionConfig.name,
+    secret: sessionConfig.secret,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -44,7 +45,7 @@ app.use(
       // In production, set to 'none' to allow sending cookies in cross-site requests.
       // In development, set to false to send cookies in all contexts.
       sameSite: process.env.NODE_ENV === "production" ? "none" : false,
-      maxAge: session.maxAge,
+      maxAge: sessionConfig.maxAge,
     },
   }),
 );
@@ -70,7 +71,9 @@ app.use((error: HttpError, req: express.Request, res: express.Response) => {
   });
 });
 
-initDatabase().then(() => {
+initDatabase().then((sequelize) => {
+  setAssociations(sequelize);
+
   app.listen(port, () => {
     console.log(`listening on port ... ${port} ${new Date().toISOString()}`);
   });

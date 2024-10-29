@@ -5,17 +5,12 @@ const {
   db: { host, user, database, password },
 } = config;
 
-const createSequelizeInstance = () => {
-  const sequelize = new Sequelize(database, user, password, {
-    dialect: "postgres",
-    host,
-  });
-
-  return sequelize;
-};
+export const sequelize = new Sequelize(database, user, password, {
+  dialect: "postgres",
+  host,
+});
 
 export const initDatabase = async () => {
-  const sequelize = createSequelizeInstance();
   try {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
