@@ -86,6 +86,8 @@ export function handleCallback(
             iv,
           });
 
+          // IMPORTANT: Only use jwt.decode() here since this token was just generated
+          // No risk of token tampering in this context. For tokens from external sources, always use jwt.verify()
           const decoded = jwt.decode(accessToken);
           if (decoded === null || typeof decoded === "string") {
             console.warn("Invalid token or token not decoded");
