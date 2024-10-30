@@ -9,6 +9,12 @@ const {
 const CIPHER_ALGORITHM = "aes-256-gcm";
 
 export async function encrypt(key: Buffer, plainText: string) {
+  if (key.length !== cipherConfig.keyLength) {
+    throw new Error(
+      `Invalid key length: Key must be ${cipherConfig.keyLength} bytes for ${CIPHER_ALGORITHM}.`,
+    );
+  }
+
   const iv = randomBytes(cipherConfig.ivLength);
   const cipher = createCipheriv(CIPHER_ALGORITHM, key, iv);
   let ciphertext = cipher.update(plainText, "utf8", "hex");
@@ -28,6 +34,12 @@ export async function decrypt(
   ciphertext: string,
   authTag: string,
 ) {
+  if (key.length !== cipherConfig.keyLength) {
+    throw new Error(
+      `Invalid key length: Key must be ${cipherConfig.keyLength} bytes for ${CIPHER_ALGORITHM}.`,
+    );
+  }
+
   const decipher = createDecipheriv(
     CIPHER_ALGORITHM,
     key,
