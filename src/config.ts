@@ -1,5 +1,11 @@
 import dotenv from "dotenv";
+import { Algorithm } from "jsonwebtoken";
+
 dotenv.config();
+
+// Declared type for CipherGCMTypes, as it's only defined internally in Node.js modules.
+// When used with createCipheriv or createDecipheriv, this type infers a CipherGCM return type.
+type CipherGCMTypes = "aes-128-gcm" | "aes-192-gcm" | "aes-256-gcm";
 
 function required<T>(key: string, defaultValue?: T): T {
   const value = process.env[key] || defaultValue;
@@ -20,11 +26,13 @@ type Config = {
   };
   auth: {
     accessToken: {
+      algorithm: Algorithm;
       name: string;
       secret: string;
       expiresInSeconds: number;
     };
     csrf: {
+      algorithm: string;
       name: string;
       secret: string;
     };
@@ -34,6 +42,7 @@ type Config = {
       maxAge: number;
     };
     cipher: {
+      algorithm: CipherGCMTypes;
       secret: string;
       saltLength: number;
       keyLength: number;
@@ -66,13 +75,15 @@ export const config: Config = {
   },
   auth: {
     accessToken: {
+      algorithm: required<Algorithm>("ACCESS_TOKEN_ALGORITHM"),
       name: required<string>("ACCESS_TOKEN_COOKIE"),
       secret: required<string>("ACCESS_TOKEN_SECRET"),
       expiresInSeconds: 60 * 60,
     },
     csrf: {
+      algorithm: required<string>("CSRF_ALGORITHM"),
       name: required<string>("CSRF_TOKEN_COOKIE"),
-      secret: required("CSRF_SECRET"),
+      secret: required<string>("CSRF_SECRET"),
     },
     session: {
       name: required<string>("AUTH_SESSION_COOKIE"),
@@ -80,6 +91,7 @@ export const config: Config = {
       maxAge: 60 * 1000,
     },
     cipher: {
+      algorithm: required<CipherGCMTypes>("CIPHER_ALGORITHM"),
       secret: required<string>("CIPHER_KEY_SECRET"),
       saltLength: 16,
       keyLength: 32,

@@ -71,11 +71,9 @@ export async function decryptAccountAccessToken(
   return accessToken;
 }
 
-const CSRF_ALGORITHM = "sha256";
-
 export function generateCsrfToken(): string {
   const salt = randomBytes(16).toString("hex");
-  const csrfToken = createHmac(CSRF_ALGORITHM, csrfConfig.secret)
+  const csrfToken = createHmac(csrfConfig.algorithm, csrfConfig.secret)
     .update(salt)
     .digest("hex");
 
@@ -89,7 +87,7 @@ export function validateCsrfToken(csrfHeader: string) {
     return false;
   }
 
-  const expected = createHmac(CSRF_ALGORITHM, csrfConfig.secret)
+  const expected = createHmac(csrfConfig.algorithm, csrfConfig.secret)
     .update(salt)
     .digest();
   const provided = Buffer.from(csrfToken, "hex");
@@ -97,13 +95,11 @@ export function validateCsrfToken(csrfHeader: string) {
   return timingSafeEqual(expected, provided);
 }
 
-const JWT_ALGORITHM = "HS256";
-
 export function generateAccessToken<T extends Record<string, unknown>>(
   payload: T,
 ) {
   return jwt.sign(payload, accessTokenConfig.secret, {
-    algorithm: JWT_ALGORITHM,
+    algorithm: accessTokenConfig.algorithm,
     expiresIn: accessTokenConfig.expiresInSeconds,
   });
 }
@@ -113,7 +109,7 @@ export function validateAccessToken(token: string): Promise<JwtPayload> {
     jwt.verify(
       token,
       accessTokenConfig.secret,
-      { algorithms: [JWT_ALGORITHM], complete: false },
+      { algorithms: [accessTokenConfig.algorithm], complete: false },
       (
         error: VerifyErrors | null,
         decoded: JwtPayload | string | undefined,
