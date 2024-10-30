@@ -10,7 +10,7 @@ export interface User {
 
 export function getCsrfToken(req: Request, res: Response) {
   const csrfToken = generateCsrfToken();
-  return res.status(200).json({ csrfToken });
+  return res.status(200).set("Cache-Control", "no-store").json({ csrfToken });
 }
 
 export async function getUser(req: Request, res: Response) {
