@@ -41,6 +41,9 @@ export const User = sequelize.define<UserModel>(
       type: DataTypes.STRING(128),
       allowNull: false,
       unique: true,
+      validate: {
+        isEmail: true,
+      },
     },
   },
   {
