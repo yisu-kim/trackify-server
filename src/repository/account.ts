@@ -50,7 +50,6 @@ export const Account = sequelize.define<AccountModel>(
     provider_name: {
       type: DataTypes.STRING(128),
       allowNull: false,
-      unique: true,
     },
     provider_data: {
       type: DataTypes.JSON,
@@ -68,6 +67,12 @@ export const Account = sequelize.define<AccountModel>(
     timestamps: true,
     createdAt: "created_at",
     updatedAt: "updated_at",
+    indexes: [
+      {
+        unique: true,
+        fields: ["provider_account_id", "provider_name"],
+      },
+    ],
   },
 );
 
