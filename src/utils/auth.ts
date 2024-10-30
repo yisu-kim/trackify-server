@@ -31,19 +31,20 @@ function combineCipherPack(
   authTag: string,
   salt: string,
 ): string {
-  return ciphertext + authTag + salt;
+  return JSON.stringify({ ciphertext, authTag, salt });
 }
 
 function extractCipherPack(ciphertextWithMeta: string) {
-  const authTagHexLength = cipherConfig.authTagLength * 2;
-  const saltHexLength = cipherConfig.saltLength * 2;
-  const totalMetaHexLength = authTagHexLength + saltHexLength;
+  const { ciphertext, authTag, salt } = JSON.parse(ciphertextWithMeta);
 
-  return {
-    ciphertext: ciphertextWithMeta.slice(0, -totalMetaHexLength),
-    authTag: ciphertextWithMeta.slice(-totalMetaHexLength, -saltHexLength),
-    salt: ciphertextWithMeta.slice(-saltHexLength),
-  };
+  if (
+    authTag.length !== cipherConfig.authTagLength * 2 ||
+    salt.length !== cipherConfig.saltLength * 2
+  ) {
+    throw new Error("Invalid cipher pack format");
+  }
+
+  return { ciphertext, authTag, salt };
 }
 
 export async function encryptAccountAccessToken(
