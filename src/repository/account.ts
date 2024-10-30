@@ -22,7 +22,7 @@ interface AccountModel
   user_id: number;
   provider_name: string;
   provider_account_id: string;
-  provider_data: object | null;
+  provider_data: Record<string, unknown> | null;
   access_token: CreationOptional<string>;
 }
 
