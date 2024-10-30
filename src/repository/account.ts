@@ -50,6 +50,7 @@ export const Account = sequelize.define<AccountModel>(
     provider_name: {
       type: DataTypes.STRING(128),
       allowNull: false,
+      unique: true,
     },
     provider_data: {
       type: DataTypes.JSON,
