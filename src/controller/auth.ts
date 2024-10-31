@@ -1,20 +1,24 @@
 import { Request, Response } from "express";
-import { generateCsrfToken } from "../utils/crypto.js";
+
+import { generateCsrfToken } from "../utils/auth.js";
+
+export interface User {
+  accountId: number;
+  providerAccountId: string;
+  accessToken: string;
+}
 
 export function getCsrfToken(req: Request, res: Response) {
   const csrfToken = generateCsrfToken();
-  res.status(200).json({ csrfToken });
-  return;
+  return res.status(200).set("Cache-Control", "no-store").json({ csrfToken });
 }
 
-export function getUser(req: Request, res: Response) {
-  // TODO: User.findById
-  const user = {};
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
+export async function getUser(req: Request, res: Response) {
+  if (!req.currentUser) {
+    return res.status(401).json({ message: "User not found." });
   }
 
-  res.status(200).json(req.user);
-  return;
+  const { id } = req.currentUser;
+
+  return res.status(200).json({ id });
 }

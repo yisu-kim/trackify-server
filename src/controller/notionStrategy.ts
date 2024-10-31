@@ -1,18 +1,23 @@
 import OAuth2Strategy, { VerifyCallback } from "passport-oauth2";
 import { config } from "../config.js";
+import { findOrCreateUser } from "../repository/user.js";
+import { findOrCreateAccount } from "../repository/account.js";
+import { User } from "./auth.js";
 
 const {
   auth: {
-    provider: { notion },
+    provider: { notion: notionConfig },
   },
 } = config;
 
+const NOTION_PROVIDER = "notion";
+
 const notionStrategyOptions = {
-  authorizationURL: notion.authorizationURL,
-  tokenURL: notion.tokenUrl,
-  clientID: notion.id,
+  authorizationURL: notionConfig.authorizationURL,
+  tokenURL: notionConfig.tokenUrl,
+  clientID: notionConfig.id,
   clientSecret: "", // Not used in passport strategy due to Notion's custom authorization
-  callbackURL: notion.redirectUri,
+  callbackURL: notionConfig.redirectUri,
   state: true,
   customHeaders: {
     // Notion API requires a custom Authorization header
@@ -20,7 +25,10 @@ const notionStrategyOptions = {
     // See: https://developers.notion.com/docs/authorization#step-3-send-the-code-in-a-post-request-to-the-notion-api
     Authorization:
       "Basic " +
-      Buffer.from(`${notion.id}:${notion.secret}`, "utf-8").toString("base64"),
+      Buffer.from(
+        `${notionConfig.id}:${notionConfig.secret}`,
+        "utf-8",
+      ).toString("base64"),
   },
 };
 
@@ -29,17 +37,13 @@ interface NotionOAuthParams {
     user: {
       id: string;
       name: string;
+      person: { email: string };
     };
   };
   workspace_id: string;
 }
 
-export interface NotionUser {
-  id: string;
-  accessToken: string;
-}
-
-function notionVerifyFunction(
+async function notionVerifyFunction(
   accessToken: string,
   refreshToken: string,
   params: NotionOAuthParams,
@@ -48,15 +52,32 @@ function notionVerifyFunction(
 ) {
   try {
     const {
-      owner: {
-        user: { id, name },
-      },
+      owner: { user: providerAccount },
       workspace_id,
     } = params;
-    // TODO: User.findOrCreate
-    const user: NotionUser = { id, accessToken };
-    return cb(null, user);
+
+    const { user } = await findOrCreateUser({
+      name: providerAccount.name,
+      email: providerAccount.person.email,
+    });
+
+    const { account } = await findOrCreateAccount({
+      user_id: user.id,
+      provider_name: NOTION_PROVIDER,
+      provider_account_id: providerAccount.id,
+      provider_data: {
+        workspace_id,
+      },
+    });
+
+    const userData: User = {
+      accountId: account.id,
+      providerAccountId: providerAccount.id,
+      accessToken,
+    };
+    return cb(null, userData);
   } catch (error) {
+    console.error("Notion Verification Error", error);
     return cb(error);
   }
 }

@@ -2,26 +2,20 @@ import { Sequelize } from "sequelize";
 import { config } from "../config.js";
 
 const {
-  db: { host, user, database, password },
+  db: { host, user, database, password, schema },
 } = config;
 
-const createSequelizeInstance = () => {
-  const sequelize = new Sequelize(database, user, password, {
-    dialect: "postgres",
-    host,
-  });
+export const sequelize = new Sequelize(database, user, password, {
+  dialect: "postgres",
+  host,
+  schema,
+});
 
-  return sequelize;
-};
-
-export const initDatabase = async () => {
-  const sequelize = createSequelizeInstance();
-  try {
-    await sequelize.authenticate();
+sequelize
+  .authenticate()
+  .then(() => {
     console.log("Database connection has been established successfully.");
-    return sequelize;
-  } catch (error) {
+  })
+  .catch((error) => {
     console.error("Unable to connect to the database:", error);
-    throw error;
-  }
-};
+  });
