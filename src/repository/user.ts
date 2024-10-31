@@ -4,15 +4,10 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  Sequelize,
 } from "sequelize";
 
-import { config } from "../config.js";
-import { sequelize } from "../db/database.js";
-import { Account } from "./account.js";
-
-const {
-  db: { schema },
-} = config;
+import { Account, User } from "./index.js";
 
 interface UserModel
   extends Model<
@@ -23,38 +18,39 @@ interface UserModel
   name: string | null;
   email: string;
 }
-
-export const User = sequelize.define<UserModel>(
-  "User",
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-    },
-    name: {
-      type: DataTypes.STRING(128),
-      allowNull: true,
-    },
-    email: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-      unique: true,
-      validate: {
-        isEmail: true,
+export function defineUserModel(sequelize: Sequelize) {
+  const User = sequelize.define<UserModel>(
+    "User",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
+      name: {
+        type: DataTypes.STRING(128),
+        allowNull: true,
+      },
+      email: {
+        type: DataTypes.STRING(128),
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
       },
     },
-  },
-  {
-    schema,
-    freezeTableName: true,
-    tableName: "User",
-    timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
-  },
-);
+    {
+      freezeTableName: true,
+      tableName: "User",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+    },
+  );
+  return User;
+}
 
 export async function findOrCreateUser(
   userData: InferCreationAttributes<UserModel, { omit: "id" }>,

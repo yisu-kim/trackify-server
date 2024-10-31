@@ -4,14 +4,10 @@ import {
   InferAttributes,
   InferCreationAttributes,
   Model,
+  Sequelize,
 } from "sequelize";
 
-import { config } from "../config.js";
-import { sequelize } from "../db/database.js";
-
-const {
-  db: { schema },
-} = config;
+import { Account } from "./index.js";
 
 interface AccountModel
   extends Model<
@@ -26,55 +22,57 @@ interface AccountModel
   access_token: CreationOptional<string>;
 }
 
-export const Account = sequelize.define<AccountModel>(
-  "Account",
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      allowNull: false,
-    },
-    user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: "User",
-        key: "id",
+export function defineAccountModel(sequelize: Sequelize) {
+  const Account = sequelize.define<AccountModel>(
+    "Account",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
+      user_id: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        references: {
+          model: "User",
+          key: "id",
+        },
+      },
+      provider_account_id: {
+        type: DataTypes.STRING(255),
+        allowNull: false,
+      },
+      provider_name: {
+        type: DataTypes.STRING(128),
+        allowNull: false,
+      },
+      provider_data: {
+        type: DataTypes.JSON,
+        allowNull: true,
+      },
+      access_token: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
       },
     },
-    provider_account_id: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
+    {
+      freezeTableName: true,
+      tableName: "Account",
+      timestamps: true,
+      createdAt: "created_at",
+      updatedAt: "updated_at",
+      indexes: [
+        {
+          unique: true,
+          fields: ["provider_account_id", "provider_name"],
+        },
+      ],
     },
-    provider_name: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-    },
-    provider_data: {
-      type: DataTypes.JSON,
-      allowNull: true,
-    },
-    access_token: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-    },
-  },
-  {
-    schema,
-    freezeTableName: true,
-    tableName: "Account",
-    timestamps: true,
-    createdAt: "created_at",
-    updatedAt: "updated_at",
-    indexes: [
-      {
-        unique: true,
-        fields: ["provider_account_id", "provider_name"],
-      },
-    ],
-  },
-);
+  );
+  return Account;
+}
 
 export async function findOrCreateAccount(
   accountData: InferCreationAttributes<

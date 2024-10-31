@@ -6,10 +6,9 @@ import morgan from "morgan";
 import expressSession from "express-session";
 import passport from "passport";
 import { config } from "./config.js";
+import { sequelize } from "./db/database.js";
 import { checkCsrf } from "./middleware/auth.js";
 import authRouter from "./router/auth.js";
-import { initDatabase } from "./db/database.js";
-import { setAssociations } from "./repository/setup.js";
 
 const {
   client,
@@ -71,9 +70,7 @@ app.use((error: HttpError, req: express.Request, res: express.Response) => {
   });
 });
 
-initDatabase().then((sequelize) => {
-  setAssociations(sequelize);
-
+sequelize.sync().then(() => {
   app.listen(port, () => {
     console.log(`listening on port ... ${port} ${new Date().toISOString()}`);
   });
