@@ -19,7 +19,7 @@ interface AccountModel
   provider_name: string;
   provider_account_id: string;
   provider_data: Record<string, unknown> | null;
-  access_token: CreationOptional<string>;
+  access_token: string | null;
 }
 
 export function defineAccountModel(sequelize: Sequelize) {
