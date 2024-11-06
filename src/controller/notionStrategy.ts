@@ -33,14 +33,25 @@ const notionStrategyOptions = {
 };
 
 interface NotionOAuthParams {
+  access_token: string;
   owner: {
+    type: string;
     user: {
       id: string;
       name: string;
+      type: string;
+      object: string;
       person: { email: string };
+      avatar_url: string | null;
     };
   };
+  bot_id: string;
+  request_id: string;
+  token_type: string;
   workspace_id: string;
+  workspace_icon: string | null;
+  workspace_name: string;
+  duplicated_template_id: string;
 }
 
 async function notionVerifyFunction(
@@ -51,10 +62,11 @@ async function notionVerifyFunction(
   cb: VerifyCallback,
 ) {
   try {
+    const { access_token, ...provider_data } = params;
+
     const {
       owner: { user: providerAccount },
-      workspace_id,
-    } = params;
+    } = provider_data;
 
     const { user } = await findOrCreateUser({
       name: providerAccount.name,
@@ -65,9 +77,7 @@ async function notionVerifyFunction(
       user_id: user.id,
       provider_name: NOTION_PROVIDER,
       provider_account_id: providerAccount.id,
-      provider_data: {
-        workspace_id,
-      },
+      provider_data,
     });
 
     const userData: User = {

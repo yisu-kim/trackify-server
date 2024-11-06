@@ -1,9 +1,12 @@
+import { AccountModel } from "./repository/account.ts";
+
 export declare global {
   namespace Express {
     interface Request {
-      currentUser?: {
-        id: string;
+      currentUser: {
+        id: number;
         iv: string;
+        account: AccountModel;
       };
     }
   }
