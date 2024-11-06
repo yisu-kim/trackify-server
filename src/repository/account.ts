@@ -1,15 +1,22 @@
 import {
+  Attributes,
   CreationOptional,
   DataTypes,
+  FindOptions,
   InferAttributes,
   InferCreationAttributes,
   Model,
+  QueryTypes,
   Sequelize,
 } from "sequelize";
 
+import { config } from "../config.js";
+import { sequelize } from "../db/database.js";
 import { Account } from "./index.js";
 
-interface AccountModel
+const { db: dbConfig } = config;
+
+export interface AccountModel
   extends Model<
     InferAttributes<AccountModel>,
     InferCreationAttributes<AccountModel>
@@ -49,7 +56,7 @@ export function defineAccountModel(sequelize: Sequelize) {
         allowNull: false,
       },
       provider_data: {
-        type: DataTypes.JSON,
+        type: DataTypes.JSONB,
         allowNull: true,
       },
       access_token: {
@@ -90,8 +97,11 @@ export async function findOrCreateAccount(
   return { account, created };
 }
 
-export async function findAccountById(id: number) {
-  return Account.findByPk(id);
+export async function findAccountById(
+  id: number,
+  options?: Omit<FindOptions<Attributes<AccountModel>>, "where">,
+) {
+  return Account.findByPk(id, options);
 }
 
 export async function updateAccountById(
@@ -113,4 +123,36 @@ export async function updateAccountById(
   }
 
   return affectedRows[0];
+}
+
+export async function countAccountsById(id: number): Promise<number> {
+  return Account.count({ where: { id } });
+}
+
+export async function findNotionPageIdById(id: number) {
+  return Account.findByPk(id, {
+    attributes: [
+      [
+        sequelize.json("provider_data.duplicated_template_id"),
+        "duplicated_template_id",
+      ],
+    ],
+  });
+}
+
+export async function updateNotionDatabaseIdById(
+  id: number,
+  databaseId: string,
+) {
+  return sequelize.query(
+    `
+    UPDATE "${dbConfig.schema}"."Account"
+    SET provider_data = jsonb_set(provider_data, '{database_id}', to_jsonb(:databaseId::text))
+    WHERE id = :id
+    `,
+    {
+      replacements: { databaseId, id },
+      type: QueryTypes.UPDATE,
+    },
+  );
 }

@@ -2,8 +2,8 @@ import { NextFunction, Request, Response } from "express";
 
 import { config } from "../config.js";
 import { validateAccessToken, validateCsrfToken } from "../utils/auth.js";
-import { findUserByAccountId } from "../repository/user.js";
-import { findAccountById } from "../repository/account.js";
+import { userService } from "../service/user.js";
+import { accountService } from "../service/account.js";
 
 const {
   auth: { accessToken: accessTokenConfig, csrf: csrfConfig },
@@ -25,19 +25,19 @@ export async function isAuthenticated(
     const decoded = await validateAccessToken(accessToken);
     const { id, iv } = decoded;
 
-    const user = await findUserByAccountId(id);
-    if (!user) {
+    const isUserExists = await userService.isExists(id);
+    if (!isUserExists) {
       console.warn("User not found.");
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    const account = await findAccountById(id);
-    if (!account) {
+    const isAccountExists = await accountService.isExists(id);
+    if (!isAccountExists) {
       console.warn("Account not found.");
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    req.currentUser = { id, iv };
+    req.currentUser = { ...req.currentUser, id, iv };
     next();
   } catch (error) {
     console.warn(`Authentication error: ${error}`);
@@ -45,7 +45,7 @@ export async function isAuthenticated(
   }
 }
 
-export const checkCsrf = (req: Request, res: Response, next: NextFunction) => {
+export function checkCsrf(req: Request, res: Response, next: NextFunction) {
   if (
     req.method === "GET" ||
     req.method === "OPTIONS" ||
@@ -75,4 +75,4 @@ export const checkCsrf = (req: Request, res: Response, next: NextFunction) => {
     console.warn(`CSRF check error: ${error}`);
     return res.status(500).json({ message: "Something went wrong" });
   }
-};
+}

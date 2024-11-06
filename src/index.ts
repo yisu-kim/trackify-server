@@ -9,6 +9,7 @@ import { config } from "./config.js";
 import { sequelize } from "./db/database.js";
 import { checkCsrf } from "./middleware/auth.js";
 import authRouter from "./router/auth.js";
+import notionRouter from "./router/notion.js";
 
 const {
   client,
@@ -53,6 +54,7 @@ app.use(passport.session());
 
 app.use("/auth", authRouter);
 app.use(checkCsrf);
+app.use("/notion", notionRouter);
 
 app.use((req: express.Request, res: express.Response) => {
   res.sendStatus(404);

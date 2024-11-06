@@ -72,3 +72,7 @@ export async function findUserByAccountId(accountId: string) {
     ],
   });
 }
+
+export async function countUsersById(id: number): Promise<number> {
+  return User.count({ where: { id } });
+}
