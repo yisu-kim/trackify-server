@@ -7,14 +7,19 @@ export async function createDatabase(req: Request, res: Response) {
     currentUser: { iv, account },
   } = req;
 
-  const accessToken = await accountService.getAccessToken(
-    account.dataValues.id,
-    iv,
-  );
-  const databaseId = await notionService.createAndSaveDatabaseId(
-    accessToken,
-    account,
-  );
+  try {
+    const accessToken = await accountService.getAccessToken(
+      account.dataValues.id,
+      iv,
+    );
+    const databaseId = await notionService.createAndSaveDatabaseId(
+      accessToken,
+      account,
+    );
 
-  return res.status(200).json({ databaseId });
+    return res.status(201).json({ databaseId });
+  } catch (error) {
+    console.error("Failed to create Notion database: ", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
 }
