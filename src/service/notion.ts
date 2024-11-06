@@ -4,8 +4,6 @@ import {
   updateNotionDatabaseIdById,
 } from "../repository/account.js";
 
-const notion = new Client();
-
 interface NotionService {
   createAndSaveDatabaseId(
     accessToken: string,
@@ -17,11 +15,12 @@ async function createAndSaveDatabaseId(
   accessToken: string,
   account: AccountModel,
 ) {
+  const notion = new Client({ auth: accessToken });
+
   // The ID of the new page created in the user's workspace, duplicated from the provided template.
   // See: https://developers.notion.com/docs/authorization#step-4-notion-responds-with-an-access_token-and-additional-information
   const pageId = account.dataValues.provider_data?.duplicated_template_id;
   const { id: databaseId } = await notion.databases.create({
-    auth: accessToken,
     parent: {
       type: "page_id",
       page_id: pageId,
