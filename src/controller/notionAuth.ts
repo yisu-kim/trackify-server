@@ -69,7 +69,7 @@ export function handleCallback(
       try {
         await cleanupOAuthSession(req, res);
 
-        const { ciphertextWithMeta, iv } = await encryptAccountAccessToken(
+        const ciphertextWithMeta = await encryptAccountAccessToken(
           user.providerAccountId,
           user.accessToken,
         );
@@ -77,9 +77,8 @@ export function handleCallback(
           access_token: ciphertextWithMeta,
         });
 
-        const accessToken = generateAccessToken<{ id: number; iv: string }>({
+        const accessToken = generateAccessToken<{ id: number }>({
           id: user.accountId,
-          iv,
         });
         const expInSeconds = getTokenExpiration(accessToken);
         res.cookie(accessTokenConfig.name, accessToken, {

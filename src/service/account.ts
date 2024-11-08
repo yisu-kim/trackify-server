@@ -2,19 +2,22 @@ import { decryptAccountAccessToken } from "../utils/auth.js";
 import { countAccountsById, findAccountById } from "../repository/account.js";
 
 interface AccountService {
-  getAccessToken(id: number, iv: string): Promise<string>;
+  getAccessToken(id: number): Promise<string>;
   isExists(id: number): Promise<boolean>;
 }
 
-async function getAccessToken(id: number, iv: string) {
+async function getAccessToken(id: number) {
   const account = await findAccountById(id, {
     attributes: ["provider_account_id", "access_token"],
   });
-  const providerAccountId = account?.dataValues.provider_account_id;
-  const encryptedAccessToken = account?.dataValues.access_token;
+  if (!account) {
+    throw new Error(`Account not found for id: ${id}`);
+  }
+
+  const providerAccountId = account.dataValues.provider_account_id;
+  const encryptedAccessToken = account.dataValues.access_token;
   return await decryptAccountAccessToken(
     providerAccountId,
-    iv,
     encryptedAccessToken,
   );
 }
