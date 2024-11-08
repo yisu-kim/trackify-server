@@ -4,13 +4,12 @@ import { notionService } from "../service/notion.js";
 
 export async function createDatabase(req: Request, res: Response) {
   const {
-    currentUser: { iv, account },
+    currentUser: { account },
   } = req;
 
   try {
     const accessToken = await accountService.getAccessToken(
       account.dataValues.id,
-      iv,
     );
     const databaseId = await notionService.createAndSaveDatabaseId(
       accessToken,

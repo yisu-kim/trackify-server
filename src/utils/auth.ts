@@ -27,24 +27,26 @@ async function deriveCipherKey(id: string, salt: string): Promise<Buffer> {
 }
 
 function combineCipherPack(
+  iv: string,
   ciphertext: string,
   authTag: string,
   salt: string,
 ): string {
-  return JSON.stringify({ ciphertext, authTag, salt });
+  return JSON.stringify({ iv, ciphertext, authTag, salt });
 }
 
 function extractCipherPack(ciphertextWithMeta: string) {
-  const { ciphertext, authTag, salt } = JSON.parse(ciphertextWithMeta);
+  const { iv, ciphertext, authTag, salt } = JSON.parse(ciphertextWithMeta);
 
   if (
+    iv.length !== cipherConfig.ivLength * 2 ||
     authTag.length !== cipherConfig.authTagLength * 2 ||
     salt.length !== cipherConfig.saltLength * 2
   ) {
     throw new Error("Invalid cipher pack format");
   }
 
-  return { ciphertext, authTag, salt };
+  return { iv, ciphertext, authTag, salt };
 }
 
 export async function encryptAccountAccessToken(
@@ -55,16 +57,16 @@ export async function encryptAccountAccessToken(
   const key = await deriveCipherKey(accountId, salt);
 
   const { iv, ciphertext, authTag } = await encrypt(key, accessToken);
-  const ciphertextWithMeta = combineCipherPack(ciphertext, authTag, salt);
-  return { ciphertextWithMeta, iv };
+  const ciphertextWithMeta = combineCipherPack(iv, ciphertext, authTag, salt);
+  return ciphertextWithMeta;
 }
 
 export async function decryptAccountAccessToken(
   accountId: string,
-  iv: string,
   ciphertextWithMeta: string,
 ) {
-  const { ciphertext, authTag, salt } = extractCipherPack(ciphertextWithMeta);
+  const { iv, ciphertext, authTag, salt } =
+    extractCipherPack(ciphertextWithMeta);
   const key = await deriveCipherKey(accountId, salt);
 
   const accessToken = decrypt(key, iv, ciphertext, authTag);

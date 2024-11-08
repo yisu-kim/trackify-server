@@ -23,7 +23,7 @@ export async function isAuthenticated(
 
   try {
     const decoded = await validateAccessToken(accessToken);
-    const { id, iv } = decoded;
+    const { id } = decoded;
 
     const isUserExists = await userService.isExists(id);
     if (!isUserExists) {
@@ -37,7 +37,7 @@ export async function isAuthenticated(
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    req.currentUser = { ...req.currentUser, id, iv };
+    req.currentUser = { ...req.currentUser, id };
     next();
   } catch (error) {
     console.warn(`Authentication error: ${error}`);

@@ -5,7 +5,6 @@ export declare global {
     interface Request {
       currentUser: {
         id: number;
-        iv: string;
         account: AccountModel;
       };
     }
