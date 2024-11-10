@@ -38,7 +38,7 @@ export async function handleSignUp(req: Request, res: Response) {
     await sendSignUpLink(name, email, token);
     res.status(200).json({ message: "Sign up link sent successfully." });
   } catch (error) {
-    console.error("Failed to send sign up link:", error);
+    console.error("Failed to send sign up link:", error.message);
     res.status(500).json({ message: "Failed to send sign up link." });
   }
 }
@@ -55,6 +55,7 @@ export async function handleSignIn(req: Request, res: Response) {
 
     const foundUser = await findUserByEmail(email);
     if (!foundUser) {
+      console.info("Sign in attempted with non-existent email");
       throw new Error("User not found");
     }
 
@@ -70,14 +71,10 @@ export async function handleSignIn(req: Request, res: Response) {
     });
 
     await sendSignInLink(email, verificationToken);
-    res.status(200).json({ message: "Registration link sent successfully" });
+    res.status(200).json({ message: "Sign in link sent successfully" });
   } catch (error) {
-    if (error.message === "User not found") {
-      return res.status(404).json({ message: error.message });
-    }
-
-    console.error("Failed to send sign in link:", error);
-    res.status(500).json({ message: "Failed to send sign in link" });
+    console.error("Failed to send sign in link:", error.message);
+    res.status(500).json({ message: "Failed to send sign in link." });
   }
 }
 
