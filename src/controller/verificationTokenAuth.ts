@@ -59,14 +59,12 @@ export async function handleSignIn(req: Request, res: Response) {
       throw new Error("User not found");
     }
 
-    const {
-      token: verificationToken,
-      expiresInSeconds: expiresInMilliseconds,
-    } = await generateVerificationToken({ email });
+    const { token: verificationToken, expiresInSeconds } =
+      await generateVerificationToken({ email });
 
     await createVerificationToken({
       token: verificationToken,
-      expires: new Date(Date.now() + expiresInMilliseconds),
+      expires: new Date(Date.now() + expiresInSeconds * 1000),
       identifier: email,
     });
 
