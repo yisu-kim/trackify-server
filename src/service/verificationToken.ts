@@ -2,16 +2,21 @@ import { config } from "../config.js";
 import { transporter } from "./mail.js";
 
 const {
+  appName,
   origin,
   auth: { verificationToken: verificationTokenConfig },
 } = config;
 
 export async function sendSignUpLink(
-  email: string,
   name: string,
+  email: string,
   token: string,
 ): Promise<void> {
   const link = `${origin}/auth/verify?token=${token}`;
+  const expirationMinutes = Math.floor(
+    verificationTokenConfig.expiresInSeconds / 60,
+  );
+
   await transporter.sendMail({
     to: email,
     from: verificationTokenConfig.sender,
@@ -20,7 +25,7 @@ export async function sendSignUpLink(
         <h3>Welcome ${name}!</h3>
         <p>Click the link below to complete your registration:</p>
         <p><a href="${link}">Create your account</a></p>
-        <p>This link will expire in 10 minutes.</p>
+        <p>This link will expire in ${expirationMinutes} minutes.</p>
       `,
   });
 }
@@ -30,15 +35,19 @@ export async function sendSignInLink(
   token: string,
 ): Promise<void> {
   const link = `${origin}/auth/verify?token=${token}`;
+  const expirationMinutes = Math.floor(
+    verificationTokenConfig.expiresInSeconds / 60,
+  );
+
   await transporter.sendMail({
     to: email,
     from: verificationTokenConfig.sender,
-    subject: "Sign in to Your App",
+    subject: `Sign in to ${appName}`,
     html: `
         <h3>Welcome back!</h3>
         <p>Click the link below to sign in:</p>
         <p><a href="${link}">Sign in to Your App</a></p>
-        <p>This link will expire in 10 minutes.</p>
+        <p>This link will expire in ${expirationMinutes} minutes.</p>
       `,
   });
 }

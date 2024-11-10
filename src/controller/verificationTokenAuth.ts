@@ -35,7 +35,7 @@ export async function handleSignUp(req: Request, res: Response) {
       identifier: email,
     });
 
-    await sendSignUpLink(email, name, token);
+    await sendSignUpLink(name, email, token);
     res.status(200).json({ message: "Sign up link sent successfully." });
   } catch (error) {
     console.error("Failed to send sign up link:", error);

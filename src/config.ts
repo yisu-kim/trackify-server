@@ -16,6 +16,7 @@ function required<T>(key: string, defaultValue?: T): T {
 }
 
 type Config = {
+  appName: string;
   origin: string;
   port: number;
   db: {
@@ -77,6 +78,7 @@ type Config = {
 };
 
 export const config: Config = {
+  appName: "Trackify",
   origin: required<string>("ORIGIN"),
   port: required<number>("PORT", 8080),
   db: {
