@@ -1,4 +1,6 @@
 import { config } from "../config.js";
+import { generateVerificationToken } from "../utils/auth.js";
+import { createVerificationToken } from "../repository/verificationToken.js";
 import { transporter } from "./mail.js";
 
 const {
@@ -6,6 +8,27 @@ const {
   origin,
   auth: { verificationToken: verificationTokenConfig },
 } = config;
+
+export async function generateAndCreateVerificationToken({
+  name,
+  email,
+}: {
+  name?: string;
+  email: string;
+}) {
+  const { token, expiresInSeconds } = await generateVerificationToken({
+    name,
+    email,
+  });
+
+  await createVerificationToken({
+    token,
+    expires: new Date(Date.now() + expiresInSeconds * 1000),
+    identifier: email,
+  });
+
+  return token;
+}
 
 export async function sendSignUpLink(
   name: string,

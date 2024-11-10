@@ -1,13 +1,10 @@
 import { Request, Response } from "express";
 
 import { config } from "../config.js";
-import {
-  generateVerificationToken,
-  validateVerificationToken,
-} from "../utils/auth.js";
+import { validateVerificationToken } from "../utils/auth.js";
 import { findUserByEmail } from "../repository/user.js";
-import { createVerificationToken } from "../repository/verificationToken.js";
 import {
+  generateAndCreateVerificationToken,
   sendSignInLink,
   sendSignUpLink,
 } from "../service/verificationToken.js";
@@ -25,24 +22,14 @@ export async function handleSignUp(req: Request, res: Response) {
     }
 
     const foundUser = await findUserByEmail(email);
-    if (!foundUser) {
-      console.info("Sign in attempted with existing email");
-      throw new Error("Email already in use");
+    if (foundUser) {
+      const token = await generateAndCreateVerificationToken({ name, email });
+      await sendSignUpLink(name, email, token);
+    } else {
+      console.info("Sign up attempted with existing email");
     }
 
-    const { token, expiresInSeconds } = await generateVerificationToken({
-      name,
-      email,
-    });
-
-    await createVerificationToken({
-      token,
-      expires: new Date(Date.now() + expiresInSeconds * 1000),
-      identifier: email,
-    });
-
-    await sendSignUpLink(name, email, token);
-    res.status(200).json({ message: "Sign up link sent successfully." });
+    return res.status(200).json({ message: "Sign up link sent successfully." });
   } catch (error) {
     console.error("Failed to send sign up link:", error.message);
     res.status(500).json({ message: "Failed to send sign up link." });
@@ -60,22 +47,14 @@ export async function handleSignIn(req: Request, res: Response) {
     }
 
     const foundUser = await findUserByEmail(email);
-    if (!foundUser) {
+    if (foundUser) {
+      const token = await generateAndCreateVerificationToken({ email });
+      await sendSignInLink(email, token);
+    } else {
       console.info("Sign in attempted with non-existent email");
-      throw new Error("User not found");
     }
 
-    const { token: verificationToken, expiresInSeconds } =
-      await generateVerificationToken({ email });
-
-    await createVerificationToken({
-      token: verificationToken,
-      expires: new Date(Date.now() + expiresInSeconds * 1000),
-      identifier: email,
-    });
-
-    await sendSignInLink(email, verificationToken);
-    res.status(200).json({ message: "Sign in link sent successfully" });
+    return res.status(200).json({ message: "Sign in link sent successfully" });
   } catch (error) {
     console.error("Failed to send sign in link:", error.message);
     res.status(500).json({ message: "Failed to send sign in link." });
