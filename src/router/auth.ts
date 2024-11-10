@@ -24,16 +24,16 @@ const validateSignUp = [
   validate,
 ];
 
-router.get("/csrf", getCsrfToken);
-router.get("/me", isAuthenticated, getUser);
-
-router.get("/notion", initiate);
-router.get("/notion/callback", handleCallback);
-
 // WARN: For unsafe methods (POST, PUT, DELETE), ensure to include the checkCsrf middleware.
 
 router.post("/signup", validateSignUp, checkCsrf, handleSignUp);
 router.post("/signin", validateSignIn, checkCsrf, handleSignIn);
 router.get("/verify", handleVerificationToken);
+
+router.get("/csrf", getCsrfToken);
+router.get("/me", isAuthenticated, getUser);
+
+router.get("/notion", initiate);
+router.get("/notion/callback", handleCallback);
 
 export default router;

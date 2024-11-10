@@ -69,6 +69,11 @@ type Config = {
   client: {
     origin: string;
   };
+  smtp: {
+    host: string;
+    user: string;
+    password: string;
+  };
 };
 
 export const config: Config = {
@@ -124,5 +129,10 @@ export const config: Config = {
   },
   client: {
     origin: required<string>("CLIENT_ORIGIN"),
+  },
+  smtp: {
+    host: required<string>("SMTP_HOST"),
+    user: required<string>("SMTP_USER"),
+    password: required<string>("SMTP_PASSWORD"),
   },
 };

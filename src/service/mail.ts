@@ -1,13 +1,15 @@
 import nodemailer from "nodemailer";
+import { config } from "../config.js";
 
-// INFO: This is a sample account provided by Nodemailer for testing purposes only.
+const { smtp } = config;
+
 // TODO: Change SMTP provider
 export const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
+  host: smtp.host,
   port: 587,
   secure: false,
   auth: {
-    user: "maddison53@ethereal.email",
-    pass: "jn7jnAPss4f63QBp6D",
+    user: smtp.user,
+    pass: smtp.password,
   },
 });
