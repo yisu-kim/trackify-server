@@ -1,6 +1,6 @@
 import OAuth2Strategy, { VerifyCallback } from "passport-oauth2";
 import { config } from "../config.js";
-import { findOrCreateUser } from "../repository/user.js";
+import { findUserByEmail } from "../repository/user.js";
 import { findOrCreateAccount } from "../repository/account.js";
 import { User } from "./auth.js";
 
@@ -68,13 +68,13 @@ async function notionVerifyFunction(
       owner: { user: providerAccount },
     } = provider_data;
 
-    const { user } = await findOrCreateUser({
-      name: providerAccount.name,
-      email: providerAccount.person.email,
-    });
+    const foundUser = await findUserByEmail(providerAccount.person.email);
+    if (!foundUser) {
+      throw new Error("User not found");
+    }
 
     const { account } = await findOrCreateAccount({
-      user_id: user.id,
+      user_id: foundUser.id,
       provider_name: NOTION_PROVIDER,
       provider_account_id: providerAccount.id,
       provider_data,
