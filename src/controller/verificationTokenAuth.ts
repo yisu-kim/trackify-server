@@ -24,6 +24,12 @@ export async function handleSignUp(req: Request, res: Response) {
       });
     }
 
+    const foundUser = await findUserByEmail(email);
+    if (!foundUser) {
+      console.info("Sign in attempted with existing email");
+      throw new Error("Email already in use");
+    }
+
     const { token, expiresInSeconds } = await generateVerificationToken({
       name,
       email,
