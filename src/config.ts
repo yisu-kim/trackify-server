@@ -16,6 +16,8 @@ function required<T>(key: string, defaultValue?: T): T {
 }
 
 type Config = {
+  appName: string;
+  origin: string;
   port: number;
   db: {
     database: string;
@@ -25,6 +27,12 @@ type Config = {
     schema: string;
   };
   auth: {
+    verificationToken: {
+      algorithm: Algorithm;
+      secret: string;
+      expiresInSeconds: number;
+      sender: string;
+    };
     accessToken: {
       algorithm: Algorithm;
       name: string;
@@ -62,9 +70,16 @@ type Config = {
   client: {
     origin: string;
   };
+  smtp: {
+    host: string;
+    user: string;
+    password: string;
+  };
 };
 
 export const config: Config = {
+  appName: "Trackify",
+  origin: required<string>("ORIGIN"),
   port: required<number>("PORT", 8080),
   db: {
     database: required<string>("DB_DATABASE"),
@@ -74,6 +89,12 @@ export const config: Config = {
     schema: required<string>("DB_SCHEMA"),
   },
   auth: {
+    verificationToken: {
+      algorithm: required<Algorithm>("VERITIFACTION_TOKEN_ALGORITHM"),
+      secret: required<string>("VERITIFACTION_TOKEN_SECRET"),
+      expiresInSeconds: 10 * 60,
+      sender: required<string>("VERITIFACTION_TOKEN_SENDER"),
+    },
     accessToken: {
       algorithm: required<Algorithm>("ACCESS_TOKEN_ALGORITHM"),
       name: required<string>("ACCESS_TOKEN_COOKIE"),
@@ -110,5 +131,10 @@ export const config: Config = {
   },
   client: {
     origin: required<string>("CLIENT_ORIGIN"),
+  },
+  smtp: {
+    host: required<string>("SMTP_HOST"),
+    user: required<string>("SMTP_USER"),
+    password: required<string>("SMTP_PASSWORD"),
   },
 };

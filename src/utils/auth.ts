@@ -5,10 +5,13 @@ import { promisify } from "node:util";
 import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 
 import { config } from "../config.js";
+import { findOrCreateUser } from "../repository/user.js";
+import { useVerificationToken } from "../repository/verificationToken.js";
 import { decrypt, encrypt } from "./crypto.js";
 
 const {
   auth: {
+    verificationToken: verificationTokenConfig,
     accessToken: accessTokenConfig,
     csrf: csrfConfig,
     cipher: cipherConfig,
@@ -100,10 +103,14 @@ export function validateCsrfToken(csrfHeader: string) {
 export function generateAccessToken<T extends Record<string, unknown>>(
   payload: T,
 ) {
-  return jwt.sign(payload, accessTokenConfig.secret, {
+  const token = jwt.sign(payload, accessTokenConfig.secret, {
     algorithm: accessTokenConfig.algorithm,
     expiresIn: accessTokenConfig.expiresInSeconds,
   });
+  return {
+    token,
+    expiresInSeconds: accessTokenConfig.expiresInSeconds,
+  };
 }
 
 export function validateAccessToken(token: string): Promise<JwtPayload> {
@@ -123,4 +130,51 @@ export function validateAccessToken(token: string): Promise<JwtPayload> {
       },
     );
   });
+}
+
+export function generateVerificationToken<T extends Record<string, unknown>>(
+  payload: T,
+) {
+  const token = jwt.sign(payload, verificationTokenConfig.secret, {
+    algorithm: verificationTokenConfig.algorithm,
+    expiresIn: verificationTokenConfig.expiresInSeconds,
+  });
+  return {
+    token,
+    expiresInSeconds: verificationTokenConfig.expiresInSeconds,
+  };
+}
+
+export async function validateVerificationToken(token: string): Promise<{
+  id: number;
+  email: string;
+} | null> {
+  try {
+    const decoded = jwt.verify(token, verificationTokenConfig.secret, {
+      algorithms: [verificationTokenConfig.algorithm],
+      complete: false,
+    });
+
+    if (!decoded || typeof decoded === "string") {
+      throw new Error("Invalid token");
+    }
+
+    await useVerificationToken({
+      identifier: decoded.email,
+      token,
+    });
+
+    const { user } = await findOrCreateUser({
+      name: decoded.name || null,
+      email: decoded.email,
+      email_verified: new Date(),
+    });
+    return {
+      id: user.id,
+      email: user.email,
+    };
+  } catch (error) {
+    console.error("Magic link verification failed:", error);
+    return null;
+  }
 }

@@ -77,15 +77,16 @@ export function handleCallback(
           access_token: ciphertextWithMeta,
         });
 
-        const accessToken = generateAccessToken<{ id: number }>({
+        const { token, expiresInSeconds } = generateAccessToken<{
+          id: number;
+        }>({
           id: user.accountId,
         });
-        const expInSeconds = getTokenExpiration(accessToken);
-        res.cookie(accessTokenConfig.name, accessToken, {
+        res.cookie(accessTokenConfig.name, token, {
           httpOnly: true,
           secure: true,
           sameSite: "none",
-          expires: new Date(expInSeconds * 1000),
+          expires: new Date(expiresInSeconds * 1000),
         });
 
         return res.redirect(client.origin);
@@ -113,22 +114,4 @@ async function cleanupOAuthSession(req: Request, res: Response): Promise<void> {
       });
     });
   });
-}
-
-function getTokenExpiration(accessToken: string): number {
-  // IMPORTANT: Only use jwt.decode() here since this token was just generated
-  // No risk of token tampering in this context. For tokens from external sources, always use jwt.verify()
-  const decoded = jwt.decode(accessToken);
-  if (decoded === null || typeof decoded === "string") {
-    console.warn("Invalid token or token not decoded");
-    throw new Error("Authentication failed");
-  }
-
-  const { exp } = decoded;
-  if (typeof exp !== "number") {
-    console.warn("Token expiration 'exp' claim is missing");
-    throw new Error("Authentication failed");
-  }
-
-  return exp;
 }

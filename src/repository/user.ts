@@ -7,7 +7,7 @@ import {
   Sequelize,
 } from "sequelize";
 
-import { Account, User } from "./index.js";
+import { User } from "./index.js";
 
 interface UserModel
   extends Model<
@@ -17,6 +17,7 @@ interface UserModel
   id: CreationOptional<number>;
   name: string | null;
   email: string;
+  email_verified?: Date;
 }
 export function defineUserModel(sequelize: Sequelize) {
   const User = sequelize.define<UserModel>(
@@ -40,6 +41,10 @@ export function defineUserModel(sequelize: Sequelize) {
           isEmail: true,
         },
       },
+      email_verified: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
     },
     {
       freezeTableName: true,
@@ -62,15 +67,8 @@ export async function findOrCreateUser(
   return { user, created };
 }
 
-export async function findUserByAccountId(accountId: string) {
-  return User.findOne({
-    include: [
-      {
-        model: Account,
-        where: { id: accountId },
-      },
-    ],
-  });
+export async function findUserByEmail(email: string) {
+  return User.findOne({ where: { email } });
 }
 
 export async function countUsersById(id: number): Promise<number> {
