@@ -104,6 +104,10 @@ export async function findAccountById(
   return Account.findByPk(id, options);
 }
 
+export async function findAccountByUserId(userId: number) {
+  return Account.findOne({ where: { user_id: userId } });
+}
+
 export async function updateAccountById(
   id: number,
   updateData: Partial<
@@ -127,17 +131,6 @@ export async function updateAccountById(
 
 export async function countAccountsById(id: number): Promise<number> {
   return Account.count({ where: { id } });
-}
-
-export async function findNotionPageIdById(id: number) {
-  return Account.findByPk(id, {
-    attributes: [
-      [
-        sequelize.json("provider_data.duplicated_template_id"),
-        "duplicated_template_id",
-      ],
-    ],
-  });
 }
 
 export async function updateNotionDatabaseIdById(

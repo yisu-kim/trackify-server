@@ -5,8 +5,8 @@ import { createDatabase } from "../controller/notion.js";
 
 const router = Router();
 
-router.use(isAuthenticated);
+router.use(isAuthenticated, enrichWithAccount);
 
-router.post("/databases", enrichWithAccount, createDatabase);
+router.post("/databases", createDatabase);
 
 export default router;

@@ -90,10 +90,10 @@ export const config: Config = {
   },
   auth: {
     verificationToken: {
-      algorithm: required<Algorithm>("VERITIFACTION_TOKEN_ALGORITHM"),
-      secret: required<string>("VERITIFACTION_TOKEN_SECRET"),
+      algorithm: required<Algorithm>("VERIFICATION_TOKEN_ALGORITHM"),
+      secret: required<string>("VERIFICATION_TOKEN_SECRET"),
       expiresInSeconds: 10 * 60,
-      sender: required<string>("VERITIFACTION_TOKEN_SENDER"),
+      sender: required<string>("VERIFICATION_TOKEN_SENDER"),
     },
     accessToken: {
       algorithm: required<Algorithm>("ACCESS_TOKEN_ALGORITHM"),

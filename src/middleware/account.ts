@@ -7,9 +7,9 @@ export async function enrichWithAccount(
   res: Response,
   next: NextFunction,
 ) {
-  const { id } = req.currentUser;
+  const { accountId } = req.currentUser;
 
-  const accountWithoutAccessToken = await findAccountById(id, {
+  const accountWithoutAccessToken = await findAccountById(accountId, {
     attributes: { exclude: ["access_token"] },
   });
   if (!accountWithoutAccessToken) {

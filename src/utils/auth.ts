@@ -6,6 +6,7 @@ import jwt, { JwtPayload, VerifyErrors } from "jsonwebtoken";
 
 import { config } from "../config.js";
 import { findOrCreateUser } from "../repository/user.js";
+import { findAccountByUserId } from "../repository/account.js";
 import { useVerificationToken } from "../repository/verificationToken.js";
 import { decrypt, encrypt } from "./crypto.js";
 
@@ -148,6 +149,7 @@ export function generateVerificationToken<T extends Record<string, unknown>>(
 export async function validateVerificationToken(token: string): Promise<{
   id: number;
   email: string;
+  accountId?: number;
 } | null> {
   try {
     const decoded = jwt.verify(token, verificationTokenConfig.secret, {
@@ -169,9 +171,13 @@ export async function validateVerificationToken(token: string): Promise<{
       email: decoded.email,
       email_verified: new Date(),
     });
+
+    const account = await findAccountByUserId(user.id);
+
     return {
       id: user.id,
       email: user.email,
+      accountId: account?.dataValues.id,
     };
   } catch (error) {
     console.error("Magic link verification failed:", error);

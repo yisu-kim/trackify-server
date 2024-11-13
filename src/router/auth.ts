@@ -2,6 +2,7 @@ import { Router } from "express";
 import { body } from "express-validator";
 
 import { checkCsrf, isAuthenticated } from "../middleware/auth.js";
+import { enrichWithAccount } from "../middleware/account.js";
 import { validate } from "../middleware/validator.js";
 import { getCsrfToken, getUser } from "../controller/auth.js";
 import { initiate, handleCallback } from "../controller/notionAuth.js";
@@ -31,7 +32,7 @@ router.post("/signin", validateSignIn, checkCsrf, handleSignIn);
 router.get("/verify", handleVerificationToken);
 
 router.get("/csrf", getCsrfToken);
-router.get("/me", isAuthenticated, getUser);
+router.get("/me", isAuthenticated, enrichWithAccount, getUser);
 
 router.get("/notion", initiate);
 router.get("/notion/callback", handleCallback);

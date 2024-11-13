@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from "express";
 import { config } from "../config.js";
 import { validateAccessToken, validateCsrfToken } from "../utils/auth.js";
 import { userService } from "../service/user.js";
-import { accountService } from "../service/account.js";
 
 const {
   auth: { accessToken: accessTokenConfig, csrf: csrfConfig },
@@ -23,21 +22,15 @@ export async function isAuthenticated(
 
   try {
     const decoded = await validateAccessToken(accessToken);
-    const { id } = decoded;
+    const { userId, accountId } = decoded;
 
-    const isUserExists = await userService.isExists(id);
+    const isUserExists = await userService.isExists(userId);
     if (!isUserExists) {
       console.warn("User not found.");
       return res.status(401).json({ message: "Authentication failed" });
     }
 
-    const isAccountExists = await accountService.isExists(id);
-    if (!isAccountExists) {
-      console.warn("Account not found.");
-      return res.status(401).json({ message: "Authentication failed" });
-    }
-
-    req.currentUser = { ...req.currentUser, id };
+    req.currentUser = { ...req.currentUser, userId, accountId };
     next();
   } catch (error) {
     console.warn(`Authentication error: ${error}`);

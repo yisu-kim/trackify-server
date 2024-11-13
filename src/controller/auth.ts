@@ -3,6 +3,7 @@ import { Request, Response } from "express";
 import { generateCsrfToken } from "../utils/auth.js";
 
 export interface User {
+  userId: number;
   accountId: number;
   providerAccountId: string;
   accessToken: string;
@@ -18,7 +19,7 @@ export async function getUser(req: Request, res: Response) {
     return res.status(401).json({ message: "User not found." });
   }
 
-  const { id } = req.currentUser;
+  const { userId, account } = req.currentUser;
 
-  return res.status(200).json({ id });
+  return res.status(200).json({ userId, account });
 }

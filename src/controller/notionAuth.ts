@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import passport from "passport";
 
-import jwt from "jsonwebtoken";
-
 import { config } from "../config.js";
 import {
   encryptAccountAccessToken,
@@ -77,16 +75,16 @@ export function handleCallback(
           access_token: ciphertextWithMeta,
         });
 
-        const { token, expiresInSeconds } = generateAccessToken<{
-          id: number;
-        }>({
-          id: user.accountId,
-        });
-        res.cookie(accessTokenConfig.name, token, {
+        const { token: accessToken, expiresInSeconds } = generateAccessToken<{
+          userId: number;
+          accountId: number;
+        }>({ userId: user.userId, accountId: user.accountId });
+
+        res.cookie(accessTokenConfig.name, accessToken, {
           httpOnly: true,
           secure: true,
           sameSite: "none",
-          expires: new Date(expiresInSeconds * 1000),
+          expires: new Date(Date.now() + expiresInSeconds * 1000),
         });
 
         return res.redirect(client.origin);
