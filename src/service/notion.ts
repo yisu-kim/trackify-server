@@ -1,15 +1,26 @@
 import { Client } from "@notionhq/client";
+import { CreatePageParameters } from "@notionhq/client/build/src/api-endpoints.js";
+
 import {
   AccountModel,
   updateNotionDatabaseIdById,
 } from "../repository/account.js";
+
+export type CreatePageParametersWithoutParent = Omit<
+  CreatePageParameters,
+  "parent"
+>;
 
 interface NotionService {
   createAndSaveDatabaseId(
     accessToken: string,
     account: AccountModel,
   ): Promise<string>;
-  createPage(accessToken: string, databaseId: string): Promise<string>;
+  createPage(
+    accessToken: string,
+    databaseId: string,
+    pageParameters: CreatePageParametersWithoutParent,
+  ): Promise<string>;
 }
 
 async function createAndSaveDatabaseId(
@@ -45,7 +56,11 @@ async function createAndSaveDatabaseId(
   return databaseId;
 }
 
-async function createPage(accessToken: string, databaseId: string) {
+async function createPage(
+  accessToken: string,
+  databaseId: string,
+  pageParameters: CreatePageParametersWithoutParent,
+) {
   const notion = new Client({ auth: accessToken });
 
   const { id: pageId } = await notion.pages.create({
@@ -53,27 +68,7 @@ async function createPage(accessToken: string, databaseId: string) {
       type: "database_id",
       database_id: databaseId,
     },
-    // TODO: get from parameter
-    properties: {
-      Name: {
-        title: [
-          {
-            text: {
-              content: "Tuscan kale",
-            },
-          },
-        ],
-      },
-      Description: {
-        rich_text: [
-          {
-            text: {
-              content: "A dark green leafy vegetable",
-            },
-          },
-        ],
-      },
-    },
+    ...pageParameters,
   });
 
   return pageId;
