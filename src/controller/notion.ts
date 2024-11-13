@@ -40,7 +40,8 @@ export async function createPage(req: Request, res: Response) {
       });
     }
 
-    await notionService.createPage(accessToken, databaseId);
+    const pageId = await notionService.createPage(accessToken, databaseId);
+    return res.status(201).json({ pageId });
   } catch (error) {
     console.error("Failed to create Notion page: ", error);
     return res.status(500).json({ message: "Something went wrong" });
