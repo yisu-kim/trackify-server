@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import { CookieOptions } from "express";
 import { Algorithm } from "jsonwebtoken";
 
 dotenv.config();
@@ -75,6 +76,7 @@ type Config = {
     user: string;
     password: string;
   };
+  cookie: CookieOptions;
 };
 
 export const config: Config = {
@@ -90,10 +92,10 @@ export const config: Config = {
   },
   auth: {
     verificationToken: {
-      algorithm: required<Algorithm>("VERITIFACTION_TOKEN_ALGORITHM"),
-      secret: required<string>("VERITIFACTION_TOKEN_SECRET"),
+      algorithm: required<Algorithm>("VERIFICATION_TOKEN_ALGORITHM"),
+      secret: required<string>("VERIFICATION_TOKEN_SECRET"),
       expiresInSeconds: 10 * 60,
-      sender: required<string>("VERITIFACTION_TOKEN_SENDER"),
+      sender: required<string>("VERIFICATION_TOKEN_SENDER"),
     },
     accessToken: {
       algorithm: required<Algorithm>("ACCESS_TOKEN_ALGORITHM"),
@@ -136,5 +138,15 @@ export const config: Config = {
     host: required<string>("SMTP_HOST"),
     user: required<string>("SMTP_USER"),
     password: required<string>("SMTP_PASSWORD"),
+  },
+  cookie: {
+    httpOnly: true,
+    // Only send the cookie over HTTPS.
+    // Set to true in production for security, false in development for easier testing.
+    secure: process.env.NODE_ENV === "production",
+    // Configure cookie sending policy for CORS requests.
+    // In production, set to 'none' to allow sending cookies in cross-site requests.
+    // In development, set to false to send cookies in all contexts.
+    sameSite: process.env.NODE_ENV === "production" ? "none" : false,
   },
 };

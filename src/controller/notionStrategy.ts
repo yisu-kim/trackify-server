@@ -81,6 +81,7 @@ async function notionVerifyFunction(
     });
 
     const userData: User = {
+      userId: foundUser.id,
       accountId: account.id,
       providerAccountId: providerAccount.id,
       accessToken,

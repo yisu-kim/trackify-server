@@ -1,7 +1,10 @@
 import { Request, Response } from "express";
 
 import { config } from "../config.js";
-import { validateVerificationToken } from "../utils/auth.js";
+import {
+  generateAccessToken,
+  validateVerificationToken,
+} from "../utils/auth.js";
 import { findUserByEmail } from "../repository/user.js";
 import {
   generateAndCreateVerificationToken,
@@ -9,7 +12,11 @@ import {
   sendSignUpLink,
 } from "../service/verificationToken.js";
 
-const { client } = config;
+const {
+  client,
+  auth: { accessToken: accessTokenConfig },
+  cookie: cookieConfig,
+} = config;
 
 export async function handleSignUp(req: Request, res: Response) {
   try {
@@ -23,10 +30,10 @@ export async function handleSignUp(req: Request, res: Response) {
 
     const foundUser = await findUserByEmail(email);
     if (foundUser) {
+      console.info("Sign up attempted with existing email");
+    } else {
       const token = await generateAndCreateVerificationToken({ name, email });
       await sendSignUpLink(name, email, token);
-    } else {
-      console.info("Sign up attempted with existing email");
     }
 
     return res.status(200).json({ message: "Sign up link sent successfully." });
@@ -57,27 +64,37 @@ export async function handleSignIn(req: Request, res: Response) {
     return res.status(200).json({ message: "Sign in link sent successfully" });
   } catch (error) {
     console.error("Failed to send sign in link:", error.message);
-    res.status(500).json({ message: "Failed to send sign in link." });
+    return res.status(500).json({ message: "Failed to send sign in link." });
   }
 }
 
 export async function handleVerificationToken(req: Request, res: Response) {
   try {
-    const { token } = req.query;
+    const { token: verificationToken } = req.query;
 
-    if (!token) {
+    if (!verificationToken) {
       return res.status(400).json({ message: "Invalid token" });
     }
 
-    const user = await validateVerificationToken(token);
+    const user = await validateVerificationToken(verificationToken);
 
     if (!user) {
       return res.status(401).json({ message: "Invalid or expired token" });
     }
 
-    res.redirect(client.origin);
+    const { token: accessToken, expiresInSeconds } = generateAccessToken<{
+      userId: number;
+      accountId?: number; // Account is linked after initial registration
+    }>({ userId: user.id, accountId: user.accountId });
+
+    res.cookie(accessTokenConfig.name, accessToken, {
+      ...cookieConfig,
+      expires: new Date(Date.now() + expiresInSeconds * 1000),
+    });
+
+    return res.redirect(client.origin);
   } catch (error) {
     console.error("Verification failed:", error);
-    res.status(500).json({ message: "Verification failed" });
+    return res.status(500).json({ message: "Verification failed" });
   }
 }

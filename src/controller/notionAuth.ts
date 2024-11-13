@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import passport from "passport";
 
-import jwt from "jsonwebtoken";
-
 import { config } from "../config.js";
 import {
   encryptAccountAccessToken,
@@ -15,6 +13,7 @@ import { notionStrategy } from "./notionStrategy.js";
 const {
   client,
   auth: { session: sessionConfig, accessToken: accessTokenConfig },
+  cookie: cookieConfig,
 } = config;
 
 const PROVIDER_NAME = "notion";
@@ -77,16 +76,14 @@ export function handleCallback(
           access_token: ciphertextWithMeta,
         });
 
-        const { token, expiresInSeconds } = generateAccessToken<{
-          id: number;
-        }>({
-          id: user.accountId,
-        });
-        res.cookie(accessTokenConfig.name, token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-          expires: new Date(expiresInSeconds * 1000),
+        const { token: accessToken, expiresInSeconds } = generateAccessToken<{
+          userId: number;
+          accountId: number;
+        }>({ userId: user.userId, accountId: user.accountId });
+
+        res.cookie(accessTokenConfig.name, accessToken, {
+          ...cookieConfig,
+          expires: new Date(Date.now() + expiresInSeconds * 1000),
         });
 
         return res.redirect(client.origin);
