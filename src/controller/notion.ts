@@ -33,10 +33,14 @@ export async function createPage(req: Request, res: Response) {
       account.dataValues.id,
     );
 
-    await notionService.createPage(
-      accessToken,
-      account.dataValues.provider_data.database_id,
-    );
+    const databaseId = account.dataValues.provider_data?.database_id;
+    if (!databaseId) {
+      return res.status(400).json({
+        message: "Notion database not initialized.",
+      });
+    }
+
+    await notionService.createPage(accessToken, databaseId);
   } catch (error) {
     console.error("Failed to create Notion page: ", error);
     return res.status(500).json({ message: "Something went wrong" });
