@@ -13,6 +13,7 @@ import { notionStrategy } from "./notionStrategy.js";
 const {
   client,
   auth: { session: sessionConfig, accessToken: accessTokenConfig },
+  cookie: cookieConfig,
 } = config;
 
 const PROVIDER_NAME = "notion";
@@ -81,9 +82,7 @@ export function handleCallback(
         }>({ userId: user.userId, accountId: user.accountId });
 
         res.cookie(accessTokenConfig.name, accessToken, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
+          ...cookieConfig,
           expires: new Date(Date.now() + expiresInSeconds * 1000),
         });
 

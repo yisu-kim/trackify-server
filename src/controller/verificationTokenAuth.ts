@@ -15,6 +15,7 @@ import {
 const {
   client,
   auth: { accessToken: accessTokenConfig },
+  cookie: cookieConfig,
 } = config;
 
 export async function handleSignUp(req: Request, res: Response) {
@@ -87,9 +88,7 @@ export async function handleVerificationToken(req: Request, res: Response) {
     }>({ userId: user.id, accountId: user.accountId });
 
     res.cookie(accessTokenConfig.name, accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
+      ...cookieConfig,
       expires: new Date(Date.now() + expiresInSeconds * 1000),
     });
 

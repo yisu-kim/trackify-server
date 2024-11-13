@@ -15,6 +15,7 @@ const {
   client,
   port,
   auth: { session: sessionConfig },
+  cookie: cookieConfig,
 } = config;
 
 const app = express();
@@ -37,14 +38,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      httpOnly: true,
-      // Only send the cookie over HTTPS.
-      // Set to true in production for security, false in development for easier testing.
-      secure: process.env.NODE_ENV === "production",
-      // Configure cookie sending policy for CORS requests.
-      // In production, set to 'none' to allow sending cookies in cross-site requests.
-      // In development, set to false to send cookies in all contexts.
-      sameSite: process.env.NODE_ENV === "production" ? "none" : false,
+      ...cookieConfig,
       maxAge: sessionConfig.maxAge,
     },
   }),
